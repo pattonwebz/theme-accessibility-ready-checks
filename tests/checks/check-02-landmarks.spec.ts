@@ -156,43 +156,19 @@ test.describe('check-02: landmarks', () => {
     }
   });
 
-  test('landmark-6 — classic theme declares html5 navigation-widget support', async ({ page, baseURL }) => {
+  test('landmark-6 — theme declares html5 navigation-widget support', async ({ page, baseURL }) => {
     const base = baseURL ?? 'http://localhost:8080';
     const response = await page.request.get(`${base}/wp-json/a11y-tests/v1/theme-support`);
     expect(
       response.status(),
-      'Expected theme support data for landmark-6.',
+      'Expected the theme-support endpoint to respond.',
     ).toBe(200);
 
-    const body = await response.text();
-    const payload = body.match(/\{[\s\S]*\}$/)?.[0];
-
+    const data = await response.json() as { passed: boolean; reason: string };
     expect(
-      payload,
-      'Expected theme support data to include a JSON object payload.',
-    ).toBeTruthy();
-
-    const data = JSON.parse(payload ?? '{}') as {
-      html5: unknown;
-      is_block_theme?: boolean;
-      has_functions_php?: boolean;
-    };
-
-    if (data.is_block_theme === true) {
-      test.info().skip(
-        'Not applicable for block themes: WordPress core auto-registers default HTML5 support and this handbook check applies to classic themes.',
-      );
-    }
-
-    if (data.has_functions_php === false) {
-      test.info().skip('Not applicable when the active theme has no functions.php file.');
-    }
-
-    const html5Support = Array.isArray(data.html5) ? data.html5 : [];
-    expect(
-      html5Support,
-      'Expected the active classic theme to include navigation-widgets in add_theme_support("html5", [...]).',
-    ).toContain('navigation-widgets');
+      data.passed,
+      data.reason,
+    ).toBe(true);
   });
 
 });
