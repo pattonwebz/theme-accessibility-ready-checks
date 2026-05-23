@@ -68,7 +68,7 @@ To keep the Docker containers running after tests (useful for debugging):
 A11Y_THEME_SLUG=your-theme-slug npm run test:theme:keep
 ```
 
-The theme must already be installed in the WordPress instance. The `A11Y_THEME_SLUG` value should match the theme's folder name in `wp-content/themes/`.
+The theme is downloaded from WordPress.org automatically using WP-CLI at container start time. `A11Y_THEME_SLUG` must match the theme's slug on WordPress.org (the same slug used in the theme's directory URL, e.g. `twentytwentyfour`).
 
 ### Available npm Scripts
 

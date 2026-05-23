@@ -25,8 +25,8 @@ else
 fi
 
 if [ -n "${THEME_SLUG}" ]; then
-  echo "==> Activating theme: ${THEME_SLUG}"
-  wp theme activate "${THEME_SLUG}" --allow-root --path=/var/www/html
+  echo "==> Installing and activating theme: ${THEME_SLUG}"
+  wp theme install "${THEME_SLUG}" --activate --allow-root --path=/var/www/html
 fi
 
 # Set permalink structure to /%postname%/

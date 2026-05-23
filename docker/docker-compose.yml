@@ -37,7 +37,6 @@ services:
     volumes:
       - wp_uploads:/var/www/html/wp-content/uploads
       - ./plugins/a11y-test-support:/var/www/html/wp-content/plugins/a11y-test-support:ro
-      - ${THEME_PATH:-.}:/var/www/html/wp-content/themes/${A11Y_THEME_SLUG:-theme-under-test}:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/wp-login.php"]
       interval: 10s
