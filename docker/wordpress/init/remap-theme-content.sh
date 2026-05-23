@@ -15,7 +15,7 @@ MENU_NAME="Accessibility Test Menu"
 echo "==> Re-assigning navigation menu to current theme locations..."
 
 # Create the menu if it was never seeded (e.g. initial theme was a block theme with no nav locations)
-if ! $WP menu list --fields=name --format=csv 2>/dev/null | tail -n +2 | grep -Fxq "$MENU_NAME"; then
+if ! $WP menu list --fields=name --format=csv 2>/dev/null | tail -n +2 | tr -d '"' | grep -Fxq "$MENU_NAME"; then
   echo "    Menu '$MENU_NAME' not found - creating it now..."
   $WP menu create "$MENU_NAME" >/dev/null
   # Populate with whatever published pages exist
@@ -30,7 +30,8 @@ else
 fi
 
 # Assign menu to all nav locations registered by the current theme
-LOCATIONS=$($WP menu location list --fields=location --format=csv 2>/dev/null | tail -n +2 || true)
+# Note: wp menu location list does not support --fields; parse column 1 of CSV output
+LOCATIONS=$($WP menu location list --format=csv 2>/dev/null | tail -n +2 | cut -d',' -f1 || true)
 
 if [ -z "$LOCATIONS" ]; then
   echo "    No nav menu locations registered by theme - skipping location assignment"
@@ -58,8 +59,8 @@ else
   # 3. Populate empty sidebars with widgets (classic themes only)
   # ============================================================================
   
-  SIDEBARS=$($WP sidebar list --fields=id,status --format=csv 2>/dev/null | \
-    awk -F',' 'NR>1 && $2=="active" {print $1}' || true)
+  # Note: wp sidebar list has no 'status' field - list all sidebars by ID, skipping wp_inactive_widgets
+  SIDEBARS=$($WP sidebar list --format=csv 2>/dev/null | tail -n +2 | cut -d',' -f2 | tr -d '"' || true)
   
   if [ -z "$SIDEBARS" ]; then
     echo "No active sidebars found"
