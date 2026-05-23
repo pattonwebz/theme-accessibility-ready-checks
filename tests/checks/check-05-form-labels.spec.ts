@@ -84,7 +84,18 @@ async function analyzeForms(page: Page): Promise<FormsAnalysis> {
       }
 
       const rect = element.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
+      if (rect.width <= 0 || rect.height <= 0) {
+        return false;
+      }
+
+      // Exclude sr-only patterns — 1px clipped elements produced by .screen-reader-text / .sr-only.
+      const clipped = style.clip === 'rect(1px, 1px, 1px, 1px)' || style.clipPath !== 'none';
+      const tiny = rect.width <= 1 || rect.height <= 1;
+      if ((style.position === 'absolute' || style.position === 'fixed') && clipped && tiny) {
+        return false;
+      }
+
+      return true;
     };
 
     const isScreenReaderOnly = (element: Element): boolean => {
