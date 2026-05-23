@@ -3,7 +3,7 @@ export const CHECK_IDS = [
   'landmark-1', 'landmark-2', 'landmark-3', 'landmark-4', 'landmark-5', 'landmark-6',
   'keyboard-1', 'keyboard-mobile-1',
   'controls-1', 'controls-2', 'controls-mobile-1',
-  'form-3',
+  'form-1', 'form-2', 'form-3', 'form-4', 'form-5', 'form-6',
   'heading-1', 'heading-2',
   'link-underline-1',
   'link-ambiguous-1',
