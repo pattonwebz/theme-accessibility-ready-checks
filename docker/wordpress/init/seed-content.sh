@@ -293,6 +293,39 @@ else
   done <<< "$LOCATIONS"
 fi
 
+echo ""
+echo "=== Widget Areas ==="
+
+if $WP eval "echo (function_exists('wp_is_block_theme') && wp_is_block_theme() ? 'block' : 'classic');" 2>/dev/null | grep -q "^block$"; then
+  echo "Block theme active - classic widget population skipped"
+else
+  SIDEBARS=$($WP sidebar list --fields=id,status --format=csv 2>/dev/null | \
+    awk -F',' 'NR>1 && $2=="active" {print $1}' || true)
+
+  if [ -z "$SIDEBARS" ]; then
+    echo "No active sidebars found"
+  else
+    while IFS= read -r SIDEBAR_ID; do
+      [ -z "$SIDEBAR_ID" ] && continue
+      [ "$SIDEBAR_ID" = "wp_inactive_widgets" ] && continue
+
+      WIDGET_COUNT=$($WP widget list "$SIDEBAR_ID" --format=count 2>/dev/null || echo 0)
+      if [ "${WIDGET_COUNT:-0}" -gt 0 ]; then
+        echo "Sidebar '$SIDEBAR_ID' already has $WIDGET_COUNT widget(s), skipping"
+        continue
+      fi
+
+      echo "Populating sidebar: $SIDEBAR_ID"
+      $WP widget add search "$SIDEBAR_ID" 1 2>/dev/null && echo "  + search" || true
+      $WP widget add recent-posts "$SIDEBAR_ID" 2 --title="Recent Posts" 2>/dev/null && echo "  + recent-posts" || true
+      $WP widget add text "$SIDEBAR_ID" 3 --title="About This Site" \
+        --text="Test WordPress installation for accessibility checking." \
+        2>/dev/null && echo "  + text" || true
+      $WP widget add categories "$SIDEBAR_ID" 4 --title="Categories" 2>/dev/null && echo "  + categories" || true
+    done <<< "$SIDEBARS"
+  fi
+fi
+
 echo "==> Content seeding complete"
 echo ""
 echo "Created content:"
