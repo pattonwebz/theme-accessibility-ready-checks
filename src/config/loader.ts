@@ -11,8 +11,8 @@ export function loadConfig(): A11yConfig {
     // tsx must be registered before require() can load .ts files
     // In practice this runs after tsx is in the require chain via setup scripts
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require(configPath) as { default?: Partial<A11yConfig> };
-    userConfig = mod.default ?? mod;
+    const mod = require(configPath) as { default?: Partial<A11yConfig> } | Partial<A11yConfig>;
+    userConfig = (mod as { default?: Partial<A11yConfig> }).default ?? (mod as Partial<A11yConfig>);
   } catch {
     // No config file found — use defaults only
   }
