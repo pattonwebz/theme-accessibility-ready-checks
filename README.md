@@ -54,18 +54,35 @@ On a new machine you also need to install the Playwright browser binaries (this 
 npx playwright install
 ```
 
-### Running Tests
+### Running Tests Against a Theme
+
+Set the theme slug and run the full suite (spins up Docker, runs tests, tears down):
 
 ```bash
-# Start WordPress test environment
-docker-compose up -d
-
-# Run accessibility tests
-npm test
-
-# Stop WordPress environment
-docker-compose down
+A11Y_THEME_SLUG=your-theme-slug npm run test:theme
 ```
+
+To keep the Docker containers running after tests (useful for debugging):
+
+```bash
+A11Y_THEME_SLUG=your-theme-slug npm run test:theme:keep
+```
+
+The theme must already be installed in the WordPress instance. The `A11Y_THEME_SLUG` value should match the theme's folder name in `wp-content/themes/`.
+
+### Available npm Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run setup` | Start Docker containers and wait for WordPress to be ready |
+| `npm test` | Build TypeScript and run Playwright tests |
+| `npm run teardown` | Stop and remove Docker containers |
+| `npm run test:theme` | Full run: setup → test → teardown |
+| `npm run test:theme:keep` | Setup and test, but leave containers running |
+
+### Test Results
+
+Screenshots and test artifacts are saved to `a11y-results/` (gitignored). Each run captures a screenshot after every test regardless of pass/fail.
 
 ## Project Structure
 

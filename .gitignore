@@ -15,6 +15,7 @@ build/
 test-results/
 playwright-report/
 playwright/.cache/
+a11y-results/
 
 # Environment variables
 .env
