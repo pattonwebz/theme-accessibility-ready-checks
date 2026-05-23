@@ -203,8 +203,13 @@ async function collectInteractiveControls(page: Page): Promise<ControlAudit[]> {
         const ariaName = labelledBy || ariaLabel;
         const label = labelText(element);
         const text = accessibleText(element);
+        const visible = visibleText(element);
         const title = element.getAttribute('title')?.trim() ?? '';
         const alt = imageAlt(element);
+        const inputValue =
+          element instanceof HTMLInputElement && ['submit', 'button', 'reset'].includes(element.type)
+            ? element.value.trim()
+            : '';
 
         let manualName = '';
         let nameSource = 'none';
@@ -213,6 +218,7 @@ async function collectInteractiveControls(page: Page): Promise<ControlAudit[]> {
           ['aria-label', ariaLabel],
           ['label', label],
           ['visible-text', text],
+          ['input-value', inputValue],
           ['title', title],
           ['alt', alt],
         ] as const) {
@@ -241,7 +247,7 @@ async function collectInteractiveControls(page: Page): Promise<ControlAudit[]> {
           selector: selectorFor(element),
           snippet: snippetFor(element),
           accessibleName,
-          visibleText: text,
+          visibleText: visible,
           ariaName,
           nameSource,
         };
@@ -567,7 +573,7 @@ async function activateUntilChanged(
   return previous;
 }
 
-async function collectDisabledButtons(page: Page): Promise<Array<{ selector: string; snippet: string; ariaDisabled: boolean }>> {
+async function collectDisabledButtons(page: Page): Promise<Array<{ selector: string; snippet: string; ariaDisabled: boolean; nativeDisabled: boolean }>> {
   return page.evaluate(() => {
     const selectorFor = (element: Element): string => {
       if (element.id) return `#${CSS.escape(element.id)}`;
@@ -610,6 +616,7 @@ async function collectDisabledButtons(page: Page): Promise<Array<{ selector: str
         selector: selectorFor(button),
         snippet: button.outerHTML.replace(/\s+/g, ' ').trim().slice(0, 200),
         ariaDisabled: button.getAttribute('aria-disabled') === 'true',
+        nativeDisabled: button.hasAttribute('disabled'),
       }));
   });
 }
@@ -911,7 +918,7 @@ test.describe('check-04: controls', () => {
         const buttons = await collectDisabledButtons(page);
         test.skip(buttons.length === 0, `${checkId} not applicable: no visually disabled buttons found on ${template} (${viewport}).`);
 
-        const ariaDisabledOnly = buttons.filter((button) => button.ariaDisabled);
+        const ariaDisabledOnly = buttons.filter((button) => button.ariaDisabled && !button.nativeDisabled);
         if (ariaDisabledOnly.length > 0) {
           await attachFindings(testInfo, `${checkId}-${template}-aria-disabled-only.json`, ariaDisabledOnly);
         }
