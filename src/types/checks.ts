@@ -6,7 +6,7 @@ export const CHECK_IDS = [
   'controls-1', 'controls-2', 'controls-3', 'controls-4', 'controls-5', 'controls-6', 'controls-7',
   'controls-mobile-1', 'controls-mobile-2', 'controls-mobile-3', 'controls-mobile-4', 'controls-mobile-5', 'controls-mobile-6', 'controls-mobile-7',
   'form-3',
-  'heading-1', 'heading-2',
+  'heading-1', 'heading-2', 'heading-3', 'heading-4', 'heading-5', 'heading-6', 'heading-7',
   'link-underline-1',
   'link-ambiguous-1',
   'new-tab-1',
