@@ -13,13 +13,14 @@
     "test:debug": "playwright test --debug",
     "setup": "docker compose -f docker/docker-compose.yml up -d && npx tsx src/utils/wait-for-wp.ts",
     "teardown": "docker compose -f docker/docker-compose.yml down -v",
-    "test:theme": "npm run teardown; npm run setup && npm test; npm run teardown",
-    "test:theme:keep": "npm run teardown; npm run setup && npm test",
+    "test:theme": "npm run teardown; npm run setup && npm run theme:switch && npm test; npm run teardown",
+    "test:theme:keep": "npm run setup && npm run theme:switch && npm test",
     "report": "playwright show-report a11y-results/playwright-html",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
     "lint": "eslint src/ tests/ --ext .ts",
-    "pretest": "npm run build"
+    "pretest": "npm run build",
+    "theme:switch": "test -z \"$A11Y_THEME_SLUG\" || docker compose -f docker/docker-compose.yml exec -T wordpress wp theme install \"$A11Y_THEME_SLUG\" --activate --allow-root --path=/var/www/html"
   },
   "dependencies": {
     "axe-core": "=4.9.1",

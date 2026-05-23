@@ -74,11 +74,12 @@ The theme is downloaded from WordPress.org automatically using WP-CLI at contain
 
 | Script | Description |
 |--------|-------------|
-| `npm run setup` | Start Docker containers and wait for WordPress to be ready |
-| `npm test` | Build TypeScript and run Playwright tests |
-| `npm run teardown` | Stop and remove Docker containers |
-| `npm run test:theme` | Full run: setup → test → teardown |
-| `npm run test:theme:keep` | Setup and test, but leave containers running |
+| `npm run setup` | Start Docker containers and wait for WordPress to be ready (idempotent — safe to call when already running) |
+| `npm test` | Build TypeScript and run Playwright tests against already-running containers |
+| `npm run teardown` | Stop and remove Docker containers and volumes |
+| `npm run theme:switch` | Install and activate `A11Y_THEME_SLUG` in the running container via WP-CLI (no restart needed) |
+| `npm run test:theme` | Full clean run: teardown → setup → switch theme → test → teardown |
+| `npm run test:theme:keep` | Start if needed, switch theme, run tests — leave containers running for fast re-runs |
 
 ### Test Results
 
