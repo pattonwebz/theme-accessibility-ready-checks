@@ -22,19 +22,18 @@ async function checkHttp(url: string): Promise<boolean> {
 
 function getWpInitState(): 'running' | 'exited' | 'unknown' {
   try {
+    // Use plain table output — JSON format varies across Docker Compose versions
     const raw = execSync(
-      `docker compose -f ${COMPOSE_FILE} ps --format json wp-init`,
+      `docker compose -f ${COMPOSE_FILE} ps wp-init`,
       { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] },
     ).trim();
-    // docker compose ps --format json may emit one JSON object per line
-    const line = raw.split('\n').find(Boolean) ?? '';
-    if (!line) return 'unknown';
-    const info = JSON.parse(line) as { State?: string; Status?: string };
-    const state = (info.State ?? '').toLowerCase();
-    if (state === 'exited' || state === 'exit') return 'exited';
-    if (state === 'running')                    return 'running';
-    // Fallback: check Status string (e.g. "Exited (0) 5 seconds ago")
-    if ((info.Status ?? '').toLowerCase().startsWith('exited')) return 'exited';
+    if (!raw) return 'unknown';
+    // Skip the header line; if no data rows, container hasn't started yet
+    const dataRows = raw.split('\n').slice(1).filter(Boolean);
+    if (dataRows.length === 0) return 'unknown';
+    const lower = dataRows.join('\n').toLowerCase();
+    if (lower.includes('exited'))           return 'exited';
+    if (lower.includes('up') || lower.includes('running')) return 'running';
     return 'unknown';
   } catch {
     return 'unknown';
