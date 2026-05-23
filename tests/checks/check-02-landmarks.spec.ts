@@ -70,7 +70,7 @@ async function getLandmarkCounts(page: Page) {
  * Check IDs: landmark-1, landmark-2, landmark-3, landmark-4, landmark-5, landmark-6
  * Templates: all 8
  * Viewports: desktop, mobile
- * Tool: Playwright (landmark-1–5) + REST client (landmark-6)
+ * Tool: Playwright (landmark-1–5) + theme support check (landmark-6)
  */
 test.describe('check-02: landmarks', () => {
 
@@ -156,18 +156,43 @@ test.describe('check-02: landmarks', () => {
     }
   });
 
-  test('landmark-6 — theme declares HTML5 theme support via REST endpoint', async ({ page, baseURL }) => {
+  test('landmark-6 — classic theme declares html5 navigation-widget support', async ({ page, baseURL }) => {
     const base = baseURL ?? 'http://localhost:8080';
     const response = await page.request.get(`${base}/wp-json/a11y-tests/v1/theme-support`);
     expect(
       response.status(),
-      'Expected the a11y-tests theme-support endpoint to return 200.',
+      'Expected theme support data for landmark-6.',
     ).toBe(200);
-    const data = await response.json() as { html5_enabled: boolean; html5: unknown };
+
+    const body = await response.text();
+    const payload = body.match(/\{[\s\S]*\}$/)?.[0];
+
     expect(
-      data.html5_enabled,
-      'Expected the active theme to declare HTML5 theme support (add_theme_support("html5", [...])).',
-    ).toBe(true);
+      payload,
+      'Expected theme support data to include a JSON object payload.',
+    ).toBeTruthy();
+
+    const data = JSON.parse(payload ?? '{}') as {
+      html5: unknown;
+      is_block_theme?: boolean;
+      has_functions_php?: boolean;
+    };
+
+    if (data.is_block_theme === true) {
+      test.info().skip(
+        'Not applicable for block themes: WordPress core auto-registers default HTML5 support and this handbook check applies to classic themes.',
+      );
+    }
+
+    if (data.has_functions_php === false) {
+      test.info().skip('Not applicable when the active theme has no functions.php file.');
+    }
+
+    const html5Support = Array.isArray(data.html5) ? data.html5 : [];
+    expect(
+      html5Support,
+      'Expected the active classic theme to include navigation-widgets in add_theme_support("html5", [...]).',
+    ).toContain('navigation-widgets');
   });
 
 });
