@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../helpers/fixtures';
+import { test, expect, ACTIVE_TEMPLATES } from '../helpers/fixtures';
 import type { TemplateName } from '../../src/types/checks';
-import { TEMPLATE_PATHS } from '../../src/types/checks';
+
 
 type FocusedSkipLink = {
   href: string;
@@ -46,7 +46,7 @@ async function focusFirstSkipLink(
 }
 
 test.describe('check-01: skip links', () => {
-  for (const [templateName, _path] of Object.entries(TEMPLATE_PATHS) as [TemplateName, string][]) {
+  for (const templateName of ACTIVE_TEMPLATES) {
     test.describe(templateName, () => {
       test('skip-1 — first focusable element is a skip link', async ({ page, templateUrl }, testInfo) => {
         const viewport = testInfo.project.name;
