@@ -737,6 +737,269 @@ async function attachFindings(testInfo: TestInfo, name: string, payload: unknown
   });
 }
 
+async function highlightAndCaptureUnnamedControls(
+  page: Page,
+  testInfo: TestInfo,
+  unnamedControls: ControlAudit[],
+): Promise<void> {
+  await page.evaluate((controls) => {
+    const color = '#e53e3e';
+
+    controls.forEach((control, index) => {
+      const element = document.querySelector(control.selector);
+      if (!(element instanceof HTMLElement)) return;
+
+      element.style.outline = `4px solid ${color}`;
+      element.style.outlineOffset = '-4px';
+      element.style.position = 'relative';
+
+      const badge = document.createElement('span');
+      badge.setAttribute('data-a11y-control-badge', '');
+      badge.style.cssText = [
+        'position:absolute',
+        'top:4px',
+        'left:4px',
+        `background:${color}`,
+        'color:#fff',
+        'font:bold 11px/1 monospace',
+        'padding:2px 6px',
+        'border-radius:3px',
+        'z-index:2147483647',
+        'pointer-events:none',
+        'white-space:nowrap',
+      ].join(';');
+      badge.textContent = `no name (#${index + 1})`;
+      element.prepend(badge);
+    });
+  }, unnamedControls);
+
+  const screenshot = await page.screenshot({ fullPage: true });
+  await testInfo.attach('controls-1-unnamed-controls.png', {
+    body: screenshot,
+    contentType: 'image/png',
+  });
+}
+
+async function highlightAndCaptureSemanticViolations(
+  page: Page,
+  testInfo: TestInfo,
+  findings: SemanticsFinding[],
+): Promise<void> {
+  await page.evaluate((items) => {
+    const color = '#805ad5';
+
+    items.forEach((finding) => {
+      const element = document.querySelector(finding.selector);
+      if (!(element instanceof HTMLElement)) return;
+
+      let label = finding.reason;
+      if (label.length > 50) {
+        label = `${label.slice(0, 47)}...`;
+      }
+
+      element.style.outline = `4px solid ${color}`;
+      element.style.outlineOffset = '-4px';
+      element.style.position = 'relative';
+
+      const badge = document.createElement('span');
+      badge.setAttribute('data-a11y-control-badge', '');
+      badge.style.cssText = [
+        'position:absolute',
+        'top:4px',
+        'left:4px',
+        `background:${color}`,
+        'color:#fff',
+        'font:bold 11px/1 monospace',
+        'padding:2px 6px',
+        'border-radius:3px',
+        'z-index:2147483647',
+        'pointer-events:none',
+        'white-space:nowrap',
+      ].join(';');
+      badge.textContent = label;
+      element.prepend(badge);
+    });
+  }, findings);
+
+  const screenshot = await page.screenshot({ fullPage: true });
+  await testInfo.attach('controls-2-semantic-violations.png', {
+    body: screenshot,
+    contentType: 'image/png',
+  });
+}
+
+async function highlightAndCaptureMismatches(
+  page: Page,
+  testInfo: TestInfo,
+  mismatches: ControlAudit[],
+): Promise<void> {
+  await page.evaluate((controls) => {
+    const color = '#dd6b20';
+
+    controls.forEach((control, index) => {
+      const element = document.querySelector(control.selector);
+      if (!(element instanceof HTMLElement)) return;
+
+      element.style.outline = `4px solid ${color}`;
+      element.style.outlineOffset = '-4px';
+      element.style.position = 'relative';
+
+      const badge = document.createElement('span');
+      badge.setAttribute('data-a11y-control-badge', '');
+      badge.style.cssText = [
+        'position:absolute',
+        'top:4px',
+        'left:4px',
+        `background:${color}`,
+        'color:#fff',
+        'font:bold 11px/1 monospace',
+        'padding:2px 6px',
+        'border-radius:3px',
+        'z-index:2147483647',
+        'pointer-events:none',
+        'white-space:nowrap',
+      ].join(';');
+      badge.textContent = `mismatch (#${index + 1})`;
+      element.prepend(badge);
+    });
+  }, mismatches);
+
+  const screenshot = await page.screenshot({ fullPage: true });
+  await testInfo.attach('controls-3-aria-mismatches.png', {
+    body: screenshot,
+    contentType: 'image/png',
+  });
+}
+
+async function highlightAndCaptureFailedButtons(
+  page: Page,
+  testInfo: TestInfo,
+  failedSelectors: string[],
+): Promise<void> {
+  await page.evaluate((selectors) => {
+    const color = '#3182ce';
+
+    selectors.forEach((selector, index) => {
+      const element = document.querySelector(selector);
+      if (!(element instanceof HTMLElement)) return;
+
+      element.style.outline = `4px solid ${color}`;
+      element.style.outlineOffset = '-4px';
+      element.style.position = 'relative';
+
+      const badge = document.createElement('span');
+      badge.setAttribute('data-a11y-control-badge', '');
+      badge.style.cssText = [
+        'position:absolute',
+        'top:4px',
+        'left:4px',
+        `background:${color}`,
+        'color:#fff',
+        'font:bold 11px/1 monospace',
+        'padding:2px 6px',
+        'border-radius:3px',
+        'z-index:2147483647',
+        'pointer-events:none',
+        'white-space:nowrap',
+      ].join(';');
+      badge.textContent = `Space failed (#${index + 1})`;
+      element.prepend(badge);
+    });
+  }, failedSelectors);
+
+  const screenshot = await page.screenshot({ fullPage: true });
+  await testInfo.attach('controls-4-role-button-space.png', {
+    body: screenshot,
+    contentType: 'image/png',
+  });
+}
+
+async function highlightAndCaptureStatefulFailures(
+  page: Page,
+  testInfo: TestInfo,
+  failedSelectors: string[],
+): Promise<void> {
+  await page.evaluate((selectors) => {
+    const color = '#2f855a';
+
+    selectors.forEach((selector, index) => {
+      const element = document.querySelector(selector);
+      if (!(element instanceof HTMLElement)) return;
+
+      element.style.outline = `4px solid ${color}`;
+      element.style.outlineOffset = '-4px';
+      element.style.position = 'relative';
+
+      const badge = document.createElement('span');
+      badge.setAttribute('data-a11y-control-badge', '');
+      badge.style.cssText = [
+        'position:absolute',
+        'top:4px',
+        'left:4px',
+        `background:${color}`,
+        'color:#fff',
+        'font:bold 11px/1 monospace',
+        'padding:2px 6px',
+        'border-radius:3px',
+        'z-index:2147483647',
+        'pointer-events:none',
+        'white-space:nowrap',
+      ].join(';');
+      badge.textContent = `state not updated (#${index + 1})`;
+      element.prepend(badge);
+    });
+  }, failedSelectors);
+
+  const screenshot = await page.screenshot({ fullPage: true });
+  await testInfo.attach('controls-5-stateful-failures.png', {
+    body: screenshot,
+    contentType: 'image/png',
+  });
+}
+
+async function highlightAndCaptureDisabledButtons(
+  page: Page,
+  testInfo: TestInfo,
+  selectors: string[],
+): Promise<void> {
+  await page.evaluate((failedSelectors) => {
+    const color = '#b7791f';
+
+    failedSelectors.forEach((selector, index) => {
+      const element = document.querySelector(selector);
+      if (!(element instanceof HTMLElement)) return;
+
+      element.style.outline = `4px solid ${color}`;
+      element.style.outlineOffset = '-4px';
+      element.style.position = 'relative';
+
+      const badge = document.createElement('span');
+      badge.setAttribute('data-a11y-control-badge', '');
+      badge.style.cssText = [
+        'position:absolute',
+        'top:4px',
+        'left:4px',
+        `background:${color}`,
+        'color:#fff',
+        'font:bold 11px/1 monospace',
+        'padding:2px 6px',
+        'border-radius:3px',
+        'z-index:2147483647',
+        'pointer-events:none',
+        'white-space:nowrap',
+      ].join(';');
+      badge.textContent = `missing disabled (#${index + 1})`;
+      element.prepend(badge);
+    });
+  }, selectors);
+
+  const screenshot = await page.screenshot({ fullPage: true });
+  await testInfo.attach('controls-6-disabled-buttons.png', {
+    body: screenshot,
+    contentType: 'image/png',
+  });
+}
+
 /**
  * Check 04: Controls
  * Check IDs: controls-1..7, controls-mobile-1..7
@@ -754,6 +1017,10 @@ test.describe('check-04: controls', () => {
 
         const controls = await collectInteractiveControls(page);
         const unnamedControls = controls.filter((control) => !control.accessibleName.trim());
+
+        if (unnamedControls.length > 0) {
+          await highlightAndCaptureUnnamedControls(page, testInfo, unnamedControls);
+        }
 
         expect(
           unnamedControls,
@@ -776,6 +1043,10 @@ test.describe('check-04: controls', () => {
 
         if (heuristicFindings.length > 0) {
           await attachFindings(testInfo, `${checkId}-${template}-heuristics.json`, heuristicFindings);
+        }
+
+        if (definiteViolations.length > 0) {
+          await highlightAndCaptureSemanticViolations(page, testInfo, definiteViolations);
         }
 
         expect(
@@ -801,6 +1072,10 @@ test.describe('check-04: controls', () => {
           return visibleText && ariaName && !ariaName.startsWith(visibleText);
         });
 
+        if (mismatches.length > 0) {
+          await highlightAndCaptureMismatches(page, testInfo, mismatches);
+        }
+
         expect(
           mismatches,
           `${checkId} expected ARIA names to begin with visible text on ${template} (${viewport}). Mismatches: ${mismatches.map((control) => `${control.selector} [visible="${control.visibleText}" aria="${control.ariaName}"]`).join(', ')}`,
@@ -820,6 +1095,7 @@ test.describe('check-04: controls', () => {
         test.skip(candidates.length === 0, `${checkId} not applicable: no non-native role="button" elements found on ${template} (${viewport}).`);
 
         const failures: string[] = [];
+        const failedCandidates: Array<{ selector: string }> = [];
 
         for (const candidate of candidates) {
           await armClickWatcher(page, candidate.selector);
@@ -829,12 +1105,14 @@ test.describe('check-04: controls', () => {
             await activateWithKeys(page, candidate.selector, ['Space']);
           } catch (error) {
             failures.push(`${candidate.selector} could not be focused and activated with Space (${String(error)}).`);
+            failedCandidates.push({ selector: candidate.selector });
             continue;
           }
 
           const after = await readInteractionSnapshot(page, candidate.selector);
           if (!before || !after) {
             failures.push(`${candidate.selector} disappeared before activation could be verified.`);
+            failedCandidates.push({ selector: candidate.selector });
             continue;
           }
 
@@ -849,7 +1127,12 @@ test.describe('check-04: controls', () => {
 
           if (!activated) {
             failures.push(`${candidate.selector} did not expose any click/state change after Space. Snippet: ${candidate.snippet}`);
+            failedCandidates.push({ selector: candidate.selector });
           }
+        }
+
+        if (failures.length > 0) {
+          await highlightAndCaptureFailedButtons(page, testInfo, failedCandidates.map((candidate) => candidate.selector));
         }
 
         expect(
@@ -871,6 +1154,7 @@ test.describe('check-04: controls', () => {
         test.skip(candidates.length === 0, `${checkId} not applicable: no stateful controls found on ${template} (${viewport}).`);
 
         const failures: string[] = [];
+        const failedCandidates: Array<{ selector: string }> = [];
 
         for (const candidate of candidates) {
           await armClickWatcher(page, candidate.selector);
@@ -881,11 +1165,13 @@ test.describe('check-04: controls', () => {
             after = await activateUntilChanged(page, candidate.selector, candidate.kind, ['Space', 'Enter']);
           } catch (error) {
             failures.push(`${candidate.selector} could not be activated (${String(error)}).`);
+            failedCandidates.push({ selector: candidate.selector });
             continue;
           }
 
           if (!before || !after) {
             failures.push(`${candidate.selector} disappeared before state could be re-read.`);
+            failedCandidates.push({ selector: candidate.selector });
             continue;
           }
 
@@ -897,7 +1183,12 @@ test.describe('check-04: controls', () => {
 
           if (!stateChanged) {
             failures.push(`${candidate.selector} did not expose a state change after activation. Snippet: ${candidate.snippet}`);
+            failedCandidates.push({ selector: candidate.selector });
           }
+        }
+
+        if (failures.length > 0) {
+          await highlightAndCaptureStatefulFailures(page, testInfo, failedCandidates.map((candidate) => candidate.selector));
         }
 
         expect(
@@ -930,6 +1221,10 @@ test.describe('check-04: controls', () => {
           });
         }, buttons.map((button) => button.selector));
 
+        if (missingDisabledAttribute.length > 0) {
+          await highlightAndCaptureDisabledButtons(page, testInfo, missingDisabledAttribute);
+        }
+
         expect(
           missingDisabledAttribute,
           `${checkId} expected visually disabled buttons on ${template} (${viewport}) to carry the disabled attribute. Missing: ${missingDisabledAttribute.join(', ')}`,
@@ -947,6 +1242,10 @@ test.describe('check-04: controls', () => {
 
         const tabAudit = await auditTabs(page);
         test.skip(tabAudit.tablistCount === 0, `${checkId} not applicable: no tab components found on ${template} (${viewport}).`);
+
+        if (tabAudit.issues.length > 0) {
+          await attachFindings(testInfo, `${checkId}-${template}-tab-issues.json`, tabAudit.issues);
+        }
 
         expect(
           tabAudit.issues,
