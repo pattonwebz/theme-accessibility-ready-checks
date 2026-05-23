@@ -352,12 +352,13 @@ if $WP eval "echo (function_exists('wp_is_block_theme') && wp_is_block_theme() ?
   ACTIVE_THEME=$($WP theme list --status=active --field=name 2>/dev/null)
   echo "    Active theme: $ACTIVE_THEME"
   
-  # Create wp_template_part override for header with nav block referencing Main navigation
+  # Create wp_template_part override for header with nav block using ref to 'Main' post.
+  # Using ref (not ariaLabel inline) avoids the WP 6.8 ariaLabel supports double-render bug
+  # where supports.ariaLabel:true + explicit extra_attributes both add aria-label.
   EXISTING_HEADER_ID=$($WP post list --post_type=wp_template_part --name=header --format=ids 2>/dev/null || echo "")
   if [ -n "$EXISTING_HEADER_ID" ]; then
-    echo "    wp_template_part 'header' already exists (ID: $EXISTING_HEADER_ID), skipping override creation"
+    echo "    wp_template_part 'header' already exists (ID: $EXISTING_HEADER_ID), skipping"
   else
-    # Header content with navigation block using ref to Main navigation post
     HEADER_CONTENT='<!-- wp:group {"align":"full","layout":{"type":"default"}} -->
 <div class="wp-block-group alignfull">
 	<!-- wp:group {"layout":{"type":"constrained"}} -->
@@ -376,7 +377,7 @@ if $WP eval "echo (function_exists('wp_is_block_theme') && wp_is_block_theme() ?
 	<!-- /wp:group -->
 </div>
 <!-- /wp:group -->'
-    
+
     HEADER_PART_ID=$($WP post create \
       --post_type=wp_template_part \
       --post_name=header \
@@ -385,13 +386,102 @@ if $WP eval "echo (function_exists('wp_is_block_theme') && wp_is_block_theme() ?
       --post_status=publish \
       --post_author=1 \
       --porcelain 2>/dev/null)
-    
-    # Set taxonomies: wp_theme and wp_template_part_area
     $WP post term add $HEADER_PART_ID wp_theme "$ACTIVE_THEME" 2>/dev/null || true
     $WP post term add $HEADER_PART_ID wp_template_part_area header 2>/dev/null || true
-    
-    echo "    Created wp_template_part 'header' override (ID: $HEADER_PART_ID) with nav ref=$NAV_POST_ID"
+    echo "    Created wp_template_part 'header' (ID: $HEADER_PART_ID) → nav ref=$NAV_POST_ID → aria-label='Main'"
   fi
+
+  # Create wp_navigation posts for the two footer navs (ref approach, same reason as above).
+  # TT5's default footer pattern has inline navs with no ariaLabel — we override the footer
+  # template part to use named wp_navigation posts instead.
+  EXPLORE_NAV_ID=$($WP post list --post_type=wp_navigation --post_title="Explore" --format=ids 2>/dev/null | head -1)
+  if [ -n "$EXPLORE_NAV_ID" ]; then
+    echo "    wp_navigation 'Explore' already exists (ID: $EXPLORE_NAV_ID)"
+  else
+    EXPLORE_NAV_ID=$($WP post create \
+      --post_type=wp_navigation \
+      --post_title="Explore" \
+      --post_content='<!-- wp:navigation-link {"label":"Blog","url":"#"} /--><!-- wp:navigation-link {"label":"About","url":"#"} /--><!-- wp:navigation-link {"label":"FAQs","url":"#"} /--><!-- wp:navigation-link {"label":"Authors","url":"#"} /-->' \
+      --post_status=publish \
+      --porcelain 2>/dev/null)
+    echo "    Created wp_navigation 'Explore' (ID: $EXPLORE_NAV_ID)"
+  fi
+
+  RESOURCES_NAV_ID=$($WP post list --post_type=wp_navigation --post_title="Resources" --format=ids 2>/dev/null | head -1)
+  if [ -n "$RESOURCES_NAV_ID" ]; then
+    echo "    wp_navigation 'Resources' already exists (ID: $RESOURCES_NAV_ID)"
+  else
+    RESOURCES_NAV_ID=$($WP post create \
+      --post_type=wp_navigation \
+      --post_title="Resources" \
+      --post_content='<!-- wp:navigation-link {"label":"Events","url":"#"} /--><!-- wp:navigation-link {"label":"Shop","url":"#"} /--><!-- wp:navigation-link {"label":"Patterns","url":"#"} /--><!-- wp:navigation-link {"label":"Themes","url":"#"} /-->' \
+      --post_status=publish \
+      --porcelain 2>/dev/null)
+    echo "    Created wp_navigation 'Resources' (ID: $RESOURCES_NAV_ID)"
+  fi
+
+  # Create wp_template_part override for footer using ref navs so labels render correctly.
+  EXISTING_FOOTER_ID=$($WP post list --post_type=wp_template_part --name=footer --format=ids 2>/dev/null || echo "")
+  if [ -n "$EXISTING_FOOTER_ID" ]; then
+    echo "    wp_template_part 'footer' already exists (ID: $EXISTING_FOOTER_ID), skipping"
+  else
+    FOOTER_CONTENT='<!-- wp:group {"style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--50)">
+	<!-- wp:group {"align":"wide","layout":{"type":"default"}} -->
+	<div class="wp-block-group alignwide">
+		<!-- wp:site-logo /-->
+		<!-- wp:group {"align":"full","layout":{"type":"flex","flexWrap":"wrap","justifyContent":"space-between","verticalAlignment":"top"}} -->
+		<div class="wp-block-group alignfull">
+			<!-- wp:columns -->
+			<div class="wp-block-columns">
+				<!-- wp:column {"width":"100%"} -->
+				<div class="wp-block-column" style="flex-basis:100%"><!-- wp:site-title {"level":2} /-->
+				<!-- wp:site-tagline /--></div>
+				<!-- /wp:column -->
+				<!-- wp:column {"width":""} -->
+				<div class="wp-block-column">
+					<!-- wp:spacer {"height":"var:preset|spacing|40","width":"0px"} -->
+					<div style="height:var(--wp--preset--spacing--40);width:0px" aria-hidden="true" class="wp-block-spacer"></div>
+					<!-- /wp:spacer -->
+				</div>
+				<!-- /wp:column -->
+			</div>
+			<!-- /wp:columns -->
+			<!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|80"}},"layout":{"type":"flex","flexWrap":"wrap","verticalAlignment":"top","justifyContent":"space-between"}} -->
+			<div class="wp-block-group">
+				<!-- wp:navigation {"ref":'$EXPLORE_NAV_ID',"overlayMenu":"never","layout":{"type":"flex","orientation":"vertical"}} /-->
+				<!-- wp:navigation {"ref":'$RESOURCES_NAV_ID',"overlayMenu":"never","layout":{"type":"flex","orientation":"vertical"}} /-->
+			</div>
+			<!-- /wp:group -->
+		</div>
+		<!-- /wp:group -->
+		<!-- wp:spacer {"height":"var:preset|spacing|70"} -->
+		<div style="height:var(--wp--preset--spacing--70)" aria-hidden="true" class="wp-block-spacer"></div>
+		<!-- /wp:spacer -->
+		<!-- wp:group {"align":"full","style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"flex","flexWrap":"wrap","justifyContent":"space-between"}} -->
+		<div class="wp-block-group alignfull">
+			<!-- wp:paragraph {"fontSize":"small"} --><p class="has-small-font-size">Twenty Twenty-Five</p><!-- /wp:paragraph -->
+			<!-- wp:paragraph {"fontSize":"small"} --><p class="has-small-font-size">Proudly powered by WordPress</p><!-- /wp:paragraph -->
+		</div>
+		<!-- /wp:group -->
+	</div>
+	<!-- /wp:group -->
+</div>
+<!-- /wp:group -->'
+
+    FOOTER_PART_ID=$($WP post create \
+      --post_type=wp_template_part \
+      --post_name=footer \
+      --post_title="footer" \
+      --post_content="$FOOTER_CONTENT" \
+      --post_status=publish \
+      --post_author=1 \
+      --porcelain 2>/dev/null)
+    $WP post term add $FOOTER_PART_ID wp_theme "$ACTIVE_THEME" 2>/dev/null || true
+    $WP post term add $FOOTER_PART_ID wp_template_part_area footer 2>/dev/null || true
+    echo "    Created wp_template_part 'footer' (ID: $FOOTER_PART_ID) → Explore ($EXPLORE_NAV_ID) + Resources ($RESOURCES_NAV_ID)"
+  fi
+
 else
   echo "Classic theme active - block navigation seeding skipped (classic nav menu handles this)"
 fi
