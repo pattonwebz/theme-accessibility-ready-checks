@@ -5,6 +5,7 @@ const config: A11yConfig = {
     name: 'my-theme',
     path: process.env.THEME_PATH ?? '../my-theme',
   },
+  themeSlug: process.env.A11Y_THEME_SLUG,
   checks: {
     enabled: 'all',
   },

@@ -19,6 +19,7 @@ export function loadConfig(): A11yConfig {
 
   const merged: A11yConfig = {
     theme: { ...defaults.theme, ...userConfig.theme },
+    themeSlug: process.env.A11Y_THEME_SLUG || userConfig.themeSlug || defaults.themeSlug,
     checks: { ...defaults.checks, ...userConfig.checks },
     viewports: userConfig.viewports ?? defaults.viewports,
     templates: { ...defaults.templates, ...userConfig.templates },

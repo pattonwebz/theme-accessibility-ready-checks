@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // Config loader will be implemented as src/config/loader.ts
-// For now use environment variables with sensible defaults
+// For now use environment variables with sensible defaults.
+// Playwright inherits process.env, so A11Y_THEME_SLUG is available to tests/helpers.
 const baseUrl = process.env.A11Y_BASE_URL ?? 'http://localhost:8080';
 const outputDir = process.env.A11Y_OUTPUT_DIR ?? 'a11y-results';
 

@@ -5,6 +5,7 @@ export const defaults: A11yConfig = {
     name: 'unknown',
     path: process.env.A11Y_THEME_PATH ?? '',
   },
+  themeSlug: process.env.A11Y_THEME_SLUG || undefined,
   checks: {
     enabled: 'all',
   },

@@ -13,6 +13,7 @@ export const a11yConfigSchema = z.object({
     name: z.string(),
     path: z.string(),
   }),
+  themeSlug: z.string().optional(),
   checks: z.object({
     enabled: z.union([z.literal('all'), z.array(checkIdSchema)]),
     skip: z.array(checkIdSchema).optional(),

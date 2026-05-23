@@ -5,6 +5,7 @@ export interface A11yConfig {
     name: string;
     path: string;   // Absolute or relative path to theme directory
   };
+  themeSlug?: string;
   checks: {
     enabled: 'all' | CheckId[];
     skip?: CheckId[];
