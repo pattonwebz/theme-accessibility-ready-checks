@@ -15,14 +15,14 @@ MENU_NAME="Accessibility Test Menu"
 echo "==> Re-assigning navigation menu to current theme locations..."
 
 # Create the menu if it was never seeded (e.g. initial theme was a block theme with no nav locations)
-if ! $WP nav menu list --fields=name --format=csv 2>/dev/null | tail -n +2 | grep -Fxq "$MENU_NAME"; then
+if ! $WP menu list --fields=name --format=csv 2>/dev/null | tail -n +2 | grep -Fxq "$MENU_NAME"; then
   echo "    Menu '$MENU_NAME' not found - creating it now..."
-  $WP nav menu create "$MENU_NAME" >/dev/null
+  $WP menu create "$MENU_NAME" >/dev/null
   # Populate with whatever published pages exist
   $WP post list --post_type=page --post_status=publish --fields=ID,post_title --format=csv 2>/dev/null | \
     tail -n +2 | while IFS=',' read -r pid ptitle; do
       [ -z "$pid" ] && continue
-      $WP nav menu item add-post "$MENU_NAME" "$pid" --title="$ptitle" 2>/dev/null || true
+      $WP menu item add-post "$MENU_NAME" "$pid" --title="$ptitle" 2>/dev/null || true
     done
   echo "    Created menu '$MENU_NAME' with available pages"
 else
@@ -30,14 +30,14 @@ else
 fi
 
 # Assign menu to all nav locations registered by the current theme
-LOCATIONS=$($WP nav menu location list --fields=location --format=csv 2>/dev/null | tail -n +2 || true)
+LOCATIONS=$($WP menu location list --fields=location --format=csv 2>/dev/null | tail -n +2 || true)
 
 if [ -z "$LOCATIONS" ]; then
   echo "    No nav menu locations registered by theme - skipping location assignment"
 else
   while IFS= read -r location; do
     [ -z "$location" ] && continue
-    $WP nav menu location assign "$MENU_NAME" "$location" 2>/dev/null || true
+    $WP menu location assign "$MENU_NAME" "$location" 2>/dev/null || true
     echo "    Assigned menu '$MENU_NAME' to location: $location"
   done <<< "$LOCATIONS"
 fi
