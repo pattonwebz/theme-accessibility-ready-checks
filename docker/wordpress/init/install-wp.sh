@@ -23,6 +23,11 @@ else
   echo "==> WordPress core installed successfully"
 fi
 
+if [ -n "${THEME_SLUG}" ]; then
+  echo "==> Activating theme: ${THEME_SLUG}"
+  wp theme activate "${THEME_SLUG}" --allow-root --path=/var/www/html
+fi
+
 # Set permalink structure to /%postname%/
 echo "==> Configuring permalink structure..."
 wp rewrite structure '/%postname%/' --allow-root
@@ -30,9 +35,5 @@ wp rewrite structure '/%postname%/' --allow-root
 # Flush rewrite rules
 echo "==> Flushing rewrite rules..."
 wp rewrite flush --allow-root
-
-# Activate the target theme
-echo "==> Activating theme: ${THEME_SLUG:-twentytwentyfive}"
-wp theme activate "${THEME_SLUG:-twentytwentyfive}" --allow-root || echo "Warning: Could not activate theme ${THEME_SLUG}"
 
 echo "==> WordPress installation and configuration complete"

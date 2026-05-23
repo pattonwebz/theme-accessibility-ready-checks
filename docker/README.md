@@ -46,7 +46,7 @@ All configuration is via environment variables defined in `.env` (copy from `.en
 ### Key Variables
 
 - `WP_ADMIN_USER`, `WP_ADMIN_PASSWORD`, `WP_ADMIN_EMAIL` — Admin credentials
-- `THEME_SLUG` — Theme directory name (default: `twentytwentyfive`)
+- `A11Y_THEME_SLUG` — Optional theme slug to activate after install (mapped to `THEME_SLUG` inside containers)
 - `THEME_PATH` — Path to theme directory to mount (default: `.` - current directory)
 - `WP_HOME`, `WP_SITEURL` — WordPress URL (default: `http://localhost:8080`)
 
