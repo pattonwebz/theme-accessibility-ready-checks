@@ -1,7 +1,8 @@
 export const CHECK_IDS = [
   'skip-1',
   'landmark-1', 'landmark-2', 'landmark-3', 'landmark-4', 'landmark-5', 'landmark-6',
-  'keyboard-1', 'keyboard-mobile-1',
+  'keyboard-1', 'keyboard-2', 'keyboard-3', 'keyboard-4', 'keyboard-5', 'keyboard-6', 'keyboard-7', 'keyboard-8', 'keyboard-9', 'keyboard-10', 'keyboard-11',
+  'keyboard-mobile-1', 'keyboard-mobile-2', 'keyboard-mobile-3', 'keyboard-mobile-4', 'keyboard-mobile-5', 'keyboard-mobile-6', 'keyboard-mobile-7', 'keyboard-mobile-8', 'keyboard-mobile-9', 'keyboard-mobile-10', 'keyboard-mobile-11',
   'controls-1', 'controls-2', 'controls-mobile-1',
   'form-3',
   'heading-1', 'heading-2',
