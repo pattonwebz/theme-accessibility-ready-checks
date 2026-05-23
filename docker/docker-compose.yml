@@ -45,6 +45,30 @@ services:
       retries: 12
       start_period: 30s
 
+  wp-init:
+    build:
+      context: ./wordpress
+      dockerfile: Dockerfile
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST:-db}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wordpress}
+      WP_SITEURL: ${WP_SITEURL:-http://localhost:8080}
+      THEME_SLUG: ${THEME_SLUG:-twentytwentyfive}
+      WP_ADMIN_USER: ${WP_ADMIN_USER:-admin}
+      WP_ADMIN_PASS: ${WP_ADMIN_PASSWORD:-password}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL:-admin@example.com}
+    volumes:
+      - ./wordpress/init:/init:ro
+      - ./plugins/a11y-test-support:/var/www/html/wp-content/plugins/a11y-test-support:ro
+    command: ["/bin/bash", "/init/run-all.sh"]
+    restart: "no"
+    network_mode: "service:wordpress"
+
 volumes:
   db_data:
   wp_uploads:
