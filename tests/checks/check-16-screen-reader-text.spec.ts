@@ -1,4 +1,4 @@
-import { test } from '../helpers/fixtures';
+import { test } from '@playwright/test';
 // import { recordResult } from '../helpers/result-collector';
 // Uncomment above and implement when writing the real test
 
