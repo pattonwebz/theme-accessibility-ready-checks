@@ -43,7 +43,7 @@ async function analyzeHeadings(page: Page): Promise<HeadingsAnalysis> {
   return page.evaluate(() => {
     const HEADING_SELECTOR = 'h1, h2, h3, h4, h5, h6, [role="heading"]';
     const H1_SELECTOR = 'h1, [role="heading"][aria-level="1"]';
-    const SECTION_SELECTOR = 'aside, footer, [role="complementary"], .widget-area, .sidebar, .footer-widgets';
+    const SECTION_SELECTOR = 'aside, [role="complementary"], .widget-area, .sidebar, .footer-widgets';
 
     const normalizeWhitespace = (value: string | null | undefined): string =>
       (value ?? '').replace(/\s+/g, ' ').trim();
@@ -448,10 +448,13 @@ test.describe('check-06 / headings / cross-template checks', () => {
 
     for (const template of templates) {
       const page = await browser.newPage({ baseURL: base });
-      await page.goto(`${base}${TEMPLATE_PATHS[template]}`);
-      const texts = await getNormalizedH1Texts(page);
-      h1ByTemplate.set(template, texts.join(' | '));
-      await page.close();
+      try {
+        await page.goto(`${base}${TEMPLATE_PATHS[template]}`);
+        const texts = await getNormalizedH1Texts(page);
+        h1ByTemplate.set(template, texts.join(' | '));
+      } finally {
+        await page.close();
+      }
     }
 
     const uniqueH1s = new Set([...h1ByTemplate.values()].filter(Boolean));
