@@ -48,6 +48,12 @@ This suite verifies WordPress accessibility-ready theme tag requirements, includ
 npm install
 ```
 
+On a new machine you also need to install the Playwright browser binaries (this is a one-time step per machine):
+
+```bash
+npx playwright install
+```
+
 ### Running Tests
 
 ```bash
