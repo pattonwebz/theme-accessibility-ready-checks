@@ -280,6 +280,70 @@ Created a standalone Git repository for the theme-accessibility-ready-checks pro
 - Branch: master (tracking origin/master)
 - Contents: README.md, .gitignore (TypeScript/Playwright/Node/Docker configured)
 
+### 2026-05-23: Apache AllowOverride All required for WordPress permalinks
+**By:** Keaton
+**What:** WordPress pretty permalinks require AllowOverride All in Apache config + wp rewrite flush --hard after setting permalink structure. Added custom Apache conf mounted into container.
+**Why:** Default WordPress Docker image Apache config has AllowOverride None, blocking .htaccess reads.
+
+### 2026-05-23: Dynamic nav menu assignment with nested accessibility coverage
+**By:** Kobayashi (WordPress Expert)
+
+**What:** `seed-content.sh` now creates an `Accessibility Test Menu` only when the active theme exposes nav menu locations, builds a nested structure for accessibility coverage, and assigns that menu to every registered location returned by `wp nav menu location list`.
+
+**Why:** Hardcoding `primary` / `primary-menu` is fragile because themes register different location slugs. Accessibility checks also need reliable 2-level and 3-level menu nesting to expose common rendering failures in nested lists and nav landmarks.
+
+**Implementation Details:**
+- Uses `wp nav menu location list --fields=location --format=csv` to discover all theme-registered locations at runtime
+- Skips menu work entirely when the active theme registers no menu locations
+- Creates menu items idempotently by only building the menu when `Accessibility Test Menu` does not already exist
+- Uses seeded content as targets where possible: Home page, Blog page, parent test page, Page Markup and Formatting page, and Block Patterns page
+- Creates hierarchy: Home; About > Our Team; Services > Accessibility > WCAG Compliance; Blog
+- Assigns the same menu to every discovered location so theme-specific slug differences do not matter
+
+### 2026-05-23: Seed content approach
+**By:** Kobayashi (WordPress Expert)
+
+**What:** seed-content.sh uses WP-CLI directly (no XML fixtures). Content is created idempotently using --porcelain ID capture. Menu creation uses `wp menu location assign` with the `primary` location as best-effort (themes vary). Permalink structure set to `/%postname%/`.
+
+**Why:** XML fixtures were never created and are fragile. WP-CLI is the canonical way to script WordPress setup in Docker.
+
+**Implementation Details:**
+- All WP-CLI commands use `--allow-root --path=/var/www/html`
+- Posts, pages, categories, and menus are created with idempotency checks (re-runs don't duplicate content)
+- IDs are captured using `--porcelain` flag for use in subsequent commands
+- Content includes rich HTML markup (headings, lists, forms, tables, images, blocks) needed for accessibility testing
+- Permalink structure must be set before content creation for slug-based URLs to resolve
+- Reading Settings configured for static front page (Home) + posts page (Blog)
+
+**Content Created:**
+1. Static "Home" page set as front page (/)
+2. "Blog" page set as posts page (/blog/)
+3. Post "Template Comments" with slug `template-comments` + approved comment (/template-comments/)
+4. Category "Block" (slug: block) with 3 assigned posts (/category/block/)
+5. Parent page "Accessibility Ready Test Pages" (/accessibility-ready-test-pages/)
+6. Child page "Page Markup and Formatting" with rich HTML (/accessibility-ready-test-pages/page-markup-and-formatting/)
+7. Child page "Block Patterns" with WordPress block markup (/accessibility-ready-test-pages/block-patterns/)
+8. Primary Navigation menu with 4 items (Home, Blog, sample post, external link)
+9. 3 posts containing "block" for search results (/?s=block)
+10. Permalink structure: /%postname%/
+
+**Coverage:** All 8 TEMPLATE_PATHS defined in src/types/checks.ts are now supported.
+
+### 2026-05-23: McManus — check-01 skip links
+**By:** McManus
+
+**Viewport Coverage Decisions:**
+1. Viewport coverage comes from Playwright projects — Use the existing `desktop` and `mobile` projects from `playwright.config.ts` rather than calling `page.setViewportSize()` in each test.
+   - Why: keeps the spec aligned with the repo's standard Playwright setup and guarantees both viewports run automatically.
+
+2. Activation passes on focus move or viewport jump — After pressing `Enter` on the focused skip link, treat the requirement as satisfied when the fragment target receives focus or is brought into the viewport.
+   - Why: themes often implement skip links by focusing the target directly or by scrolling to the main-content anchor; both reflect the stated requirement.
+
+### 2026-05-23: Skip link tests run on all templates
+**By:** McManus
+**What:** check-01 skip link tests now iterate all 8 TEMPLATE_PATHS entries. No templates are skipped — a theme failing skip links on any template is a genuine failure.
+**Why:** Accessibility requirement applies to all pages, not just the front page.
+
 ## Governance
 
 - All meaningful changes require team consensus
