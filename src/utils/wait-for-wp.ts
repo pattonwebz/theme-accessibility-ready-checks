@@ -24,7 +24,7 @@ function getWpInitState(): 'running' | 'exited' | 'unknown' {
   try {
     // Use plain table output — JSON format varies across Docker Compose versions
     const raw = execSync(
-      `docker compose -f ${COMPOSE_FILE} ps wp-init`,
+      `docker compose -f ${COMPOSE_FILE} ps --all wp-init`,
       { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] },
     ).trim();
     if (!raw) return 'unknown';
