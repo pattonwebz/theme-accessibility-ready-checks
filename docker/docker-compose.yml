@@ -1,0 +1,50 @@
+services:
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-wordpress}
+      MYSQL_USER: ${MYSQL_USER:-wordpress}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-wordpress}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  wordpress:
+    build:
+      context: ./wordpress
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST:-db}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wordpress}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX:-wp_}
+      WORDPRESS_DEBUG: ${WORDPRESS_DEBUG:-1}
+      WP_SITEURL: ${WP_SITEURL:-http://localhost:8080}
+      WP_HOME: ${WP_HOME:-http://localhost:8080}
+      THEME_SLUG: ${THEME_SLUG:-twentytwentyfive}
+    volumes:
+      - wp_uploads:/var/www/html/wp-content/uploads
+      - ./plugins/a11y-test-support:/var/www/html/wp-content/plugins/a11y-test-support:ro
+      - ${THEME_PATH:-.}:/var/www/html/wp-content/themes/${THEME_SLUG:-twentytwentyfive}:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/wp-login.php"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  db_data:
+  wp_uploads:
