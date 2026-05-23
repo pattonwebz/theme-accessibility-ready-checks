@@ -1,0 +1,46 @@
+{
+  "agents": {
+    "tooling-devops": {
+      "persistent_name": "Keaton",
+      "universe": "The Usual Suspects",
+      "created_at": "2026-05-23T03:45:26Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "playwright-dev": {
+      "persistent_name": "McManus",
+      "universe": "The Usual Suspects",
+      "created_at": "2026-05-23T03:45:26Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "a11y-specialist": {
+      "persistent_name": "Fenster",
+      "universe": "The Usual Suspects",
+      "created_at": "2026-05-23T03:45:26Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "wordpress-expert": {
+      "persistent_name": "Kobayashi",
+      "universe": "The Usual Suspects",
+      "created_at": "2026-05-23T03:45:26Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "scribe": {
+      "persistent_name": "Scribe",
+      "universe": null,
+      "created_at": "2026-05-23T03:45:26Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "ralph": {
+      "persistent_name": "Ralph",
+      "universe": null,
+      "created_at": "2026-05-23T03:45:26Z",
+      "legacy_named": false,
+      "status": "active"
+    }
+  }
+}
