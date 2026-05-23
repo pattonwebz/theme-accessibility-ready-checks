@@ -82,11 +82,9 @@ type FocusSnapshot = {
 type TabSweep = {
   expected: InteractiveCandidate[];
   hidden: InteractiveCandidate[];
-  steps: FocusSnapshot[];
   uniqueOrder: string[];
   uniqueSteps: FocusSnapshot[];
   trapSnapshots: FocusSnapshot[];
-  wrapped: boolean;
 };
 
 type DisclosureTrigger = {
@@ -97,7 +95,6 @@ type DisclosureTrigger = {
 
 type ModalTarget = {
   triggerKey: string | null;
-  triggerSelector: string | null;
   dialogSelector: string;
 };
 
@@ -522,12 +519,10 @@ async function getFocusSnapshot(page: Page): Promise<FocusSnapshot> {
 async function runTabSweep(page: Page): Promise<TabSweep> {
   await prepareForKeyboardTraversal(page);
   const { expected, hidden } = await getInteractiveCandidates(page);
-  const steps: FocusSnapshot[] = [];
   const uniqueOrder: string[] = [];
   const uniqueStepMap = new Map<string, FocusSnapshot>();
   const trapSnapshots: FocusSnapshot[] = [];
 
-  let wrapped = false;
   let firstKey: string | null = null;
   let consecutiveSame = 0;
   let previousKey: string | null = null;
@@ -537,7 +532,6 @@ async function runTabSweep(page: Page): Promise<TabSweep> {
     await page.waitForTimeout(TAB_DELAY_MS);
 
     const snapshot = await getFocusSnapshot(page);
-    steps.push(snapshot);
 
     if (!snapshot.key) {
       consecutiveSame = previousKey === null ? consecutiveSame + 1 : 0;
@@ -548,7 +542,6 @@ async function runTabSweep(page: Page): Promise<TabSweep> {
     if (!firstKey) {
       firstKey = snapshot.key;
     } else if (snapshot.key === firstKey && uniqueOrder.length > 1) {
-      wrapped = true;
       break;
     }
 
@@ -568,13 +561,11 @@ async function runTabSweep(page: Page): Promise<TabSweep> {
   return {
     expected,
     hidden,
-    steps,
     uniqueOrder,
     uniqueSteps: uniqueOrder
       .map((key) => uniqueStepMap.get(key))
       .filter((step): step is FocusSnapshot => Boolean(step)),
     trapSnapshots,
-    wrapped,
   };
 }
 
@@ -811,7 +802,6 @@ async function getFirstModalTarget(page: Page): Promise<ModalTarget | null> {
     if (visibleDialog) {
       return {
         triggerKey: null,
-        triggerSelector: null,
         dialogSelector: selectorFor(visibleDialog),
       };
     }
@@ -843,7 +833,6 @@ async function getFirstModalTarget(page: Page): Promise<ModalTarget | null> {
 
         return {
           triggerKey: ensureKey(trigger),
-          triggerSelector: selectorFor(trigger),
           dialogSelector: selectorFor(candidate),
         };
       }
