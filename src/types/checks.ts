@@ -5,7 +5,7 @@ export const CHECK_IDS = [
   'keyboard-mobile-1', 'keyboard-mobile-2', 'keyboard-mobile-3', 'keyboard-mobile-4', 'keyboard-mobile-5', 'keyboard-mobile-6', 'keyboard-mobile-7', 'keyboard-mobile-8', 'keyboard-mobile-9', 'keyboard-mobile-10', 'keyboard-mobile-11',
   'controls-1', 'controls-2', 'controls-3', 'controls-4', 'controls-5', 'controls-6', 'controls-7',
   'controls-mobile-1', 'controls-mobile-2', 'controls-mobile-3', 'controls-mobile-4', 'controls-mobile-5', 'controls-mobile-6', 'controls-mobile-7',
-  'form-3',
+  'form-1', 'form-2', 'form-3', 'form-4', 'form-5', 'form-6',
   'heading-1', 'heading-2', 'heading-3', 'heading-4', 'heading-5', 'heading-6', 'heading-7',
   'link-underline-1',
   'link-ambiguous-1',
