@@ -8,6 +8,7 @@ const outputDir = process.env.A11Y_OUTPUT_DIR ?? 'a11y-results';
 
 export default defineConfig({
   testDir: './tests/checks',
+  globalSetup: './tests/global-setup.ts',
   timeout: 60_000,
   retries: process.env.CI ? 1 : 0,
   workers: 1, // Serial — WP state must be consistent between tests

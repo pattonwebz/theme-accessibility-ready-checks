@@ -11,6 +11,7 @@
     "test:ci": "playwright test --reporter=json,html",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
+    "test:homepage": "A11Y_TEMPLATES=front-page playwright test",
     "setup": "docker compose -f docker/docker-compose.yml up -d && npx tsx src/utils/wait-for-wp.ts",
     "teardown": "docker compose -f docker/docker-compose.yml down -v",
     "test:theme": "npm run teardown; npm run setup && npm run theme:switch && npm test; npm run teardown",
