@@ -12,8 +12,8 @@ $WP rewrite flush --hard
 
 # Create category "Block" (slug: block)
 echo "==> Creating category 'Block'..."
-if $WP term get category block --by=slug --format=ids 2>/dev/null; then
-  CATEGORY_BLOCK_ID=$($WP term get category block --by=slug --field=term_id)
+CATEGORY_BLOCK_ID=$($WP term get category block --by=slug --field=term_id 2>/dev/null || echo "")
+if [ -n "$CATEGORY_BLOCK_ID" ]; then
   echo "    Category 'Block' already exists (ID: $CATEGORY_BLOCK_ID)"
 else
   CATEGORY_BLOCK_ID=$($WP term create category "Block" --slug=block --porcelain)
