@@ -33,8 +33,8 @@ fi
 echo "==> Configuring permalink structure..."
 wp rewrite structure '/%postname%/' --allow-root --path=/var/www/html
 
-# Flush rewrite rules
+# Flush rewrite rules and regenerate .htaccess
 echo "==> Flushing rewrite rules..."
-wp rewrite flush --allow-root --path=/var/www/html
+wp rewrite flush --hard --allow-root --path=/var/www/html
 
 echo "==> WordPress installation and configuration complete"

@@ -37,6 +37,7 @@ services:
     volumes:
       - wp_uploads:/var/www/html/wp-content/uploads
       - ./plugins/a11y-test-support:/var/www/html/wp-content/plugins/a11y-test-support:ro
+      - ./wordpress/config/apache-wordpress.conf:/etc/apache2/conf-enabled/wordpress.conf:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/wp-login.php"]
       interval: 10s

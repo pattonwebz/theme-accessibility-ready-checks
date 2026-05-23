@@ -8,7 +8,7 @@ echo "==> Seeding WordPress content..."
 # Set permalink structure (required for slug-based URLs)
 echo "==> Setting permalink structure to /%postname%/..."
 $WP rewrite structure '/%postname%/'
-$WP rewrite flush
+$WP rewrite flush --hard
 
 # Create category "Block" (slug: block)
 echo "==> Creating category 'Block'..."
