@@ -21,7 +21,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
     "lint": "eslint src/ tests/ --ext .ts",
     "pretest": "npm run build",
-    "theme:switch": "test -z \"$A11Y_THEME_SLUG\" || docker compose --env-file .env -f docker/docker-compose.yml exec -T wordpress wp theme install \"$A11Y_THEME_SLUG\" --activate --allow-root --path=/var/www/html"
+    "theme:switch": "test -z \"$A11Y_THEME_SLUG\" || (docker compose --env-file .env -f docker/docker-compose.yml exec -T wordpress wp theme install \"$A11Y_THEME_SLUG\" --activate --allow-root --path=/var/www/html && docker compose --env-file .env -f docker/docker-compose.yml cp docker/wordpress/init/remap-theme-content.sh wordpress:/var/www/remap-theme-content.sh && docker compose --env-file .env -f docker/docker-compose.yml exec -T wordpress bash /var/www/remap-theme-content.sh)"
   },
   "dependencies": {
     "axe-core": "=4.9.1",
