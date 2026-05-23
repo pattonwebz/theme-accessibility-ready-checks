@@ -7,7 +7,7 @@ sleep 5
 cd /var/www/html
 
 # Check if WordPress is already installed
-if wp core is-installed --allow-root 2>/dev/null; then
+if wp core is-installed --allow-root --path=/var/www/html 2>/dev/null; then
   echo "==> WordPress already installed, skipping core install"
 else
   echo "==> Installing WordPress core..."
@@ -18,7 +18,8 @@ else
     --admin_password="${WP_ADMIN_PASS:-password}" \
     --admin_email="${WP_ADMIN_EMAIL:-admin@example.com}" \
     --skip-email \
-    --allow-root
+    --allow-root \
+    --path=/var/www/html
 
   echo "==> WordPress core installed successfully"
 fi
@@ -30,10 +31,10 @@ fi
 
 # Set permalink structure to /%postname%/
 echo "==> Configuring permalink structure..."
-wp rewrite structure '/%postname%/' --allow-root
+wp rewrite structure '/%postname%/' --allow-root --path=/var/www/html
 
 # Flush rewrite rules
 echo "==> Flushing rewrite rules..."
-wp rewrite flush --allow-root
+wp rewrite flush --allow-root --path=/var/www/html
 
 echo "==> WordPress installation and configuration complete"
