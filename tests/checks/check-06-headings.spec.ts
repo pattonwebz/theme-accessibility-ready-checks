@@ -364,7 +364,7 @@ for (const template of ACTIVE_TEMPLATES) {
 
       testInfo.annotations.push({
         type: 'note',
-        description: 'Heuristic check — review flagged major sections manually before treating as a defect.',
+        description: 'Automated heuristic detection — verify any failures manually, as false positives are possible with these selectors.',
       });
 
       const analysis = await analyzeHeadings(page);
@@ -387,7 +387,7 @@ for (const template of ACTIVE_TEMPLATES) {
 
       testInfo.annotations.push({
         type: 'note',
-        description: 'Heuristic check — review flagged major sections manually before treating as a defect.',
+        description: 'Automated heuristic detection — verify any failures manually, as false positives are possible with these selectors.',
       });
 
       const analysis = await analyzeHeadings(page);
@@ -417,11 +417,9 @@ for (const template of ACTIVE_TEMPLATES) {
       if (analysis.stylingWarnings.length > 0) {
         testInfo.annotations.push({
           type: 'warning',
-          description: analysis.stylingWarnings.map((warning) => `${warning.reason} ${warning.selector}${warning.text ? ` (“${warning.text}”)` : ''}`).join(' | '),
+          description: analysis.stylingWarnings.map((warning) => `${warning.reason} ${warning.selector}${warning.text ? ` ("${warning.text}")` : ''}`).join(' | '),
         });
       }
-
-      expect(true).toBe(true);
     });
 
     test.skip('headings-8: heading content relates to following content [desktop]', async ({}, testInfo) => {
@@ -445,7 +443,7 @@ test.describe('check-06 / headings / cross-template checks', () => {
       test.skip(true, 'Need at least two non-home templates to compare H1 text across templates.');
     }
 
-    const base = baseURL ?? process.env.A11Y_BASE_URL ?? 'http://localhost:8082';
+    const base = baseURL ?? 'http://localhost:8080';
     const h1ByTemplate = new Map<TemplateName, string>();
 
     for (const template of templates) {

@@ -4,7 +4,7 @@ export const CHECK_IDS = [
   'keyboard-1', 'keyboard-mobile-1',
   'controls-1', 'controls-2', 'controls-mobile-1',
   'form-3',
-  'heading-1', 'heading-2',
+  'heading-1', 'heading-2', 'heading-3', 'heading-4', 'heading-5', 'heading-6', 'heading-7',
   'link-underline-1',
   'link-ambiguous-1',
   'new-tab-1',
