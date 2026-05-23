@@ -12,5 +12,5 @@ import { test } from '@playwright/test';
  * Tests that text/background colour contrast meets WCAG AA (4.5:1 normal, 3:1 large).
  */
 test.describe('check-10: colour contrast', () => {
-  test.todo('contrast-1 — verify colour contrast meets WCAG AA on all templates');
+  test.skip('contrast-1 — verify colour contrast meets WCAG AA on all templates', async () => {});
 });

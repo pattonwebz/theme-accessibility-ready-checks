@@ -12,7 +12,7 @@ import { test } from '@playwright/test';
  * Tests that all form inputs have associated labels (search form, comment form).
  */
 test.describe('check-05: form labels', () => {
-  test.todo('form-3 — verify all inputs have associated labels on front-page');
-  test.todo('form-3 — verify all inputs have associated labels on search-results');
-  test.todo('form-3 — verify all inputs have associated labels on post-with-comments (comment form)');
+  test.skip('form-3 — verify all inputs have associated labels on front-page', async () => {});
+  test.skip('form-3 — verify all inputs have associated labels on search-results', async () => {});
+  test.skip('form-3 — verify all inputs have associated labels on post-with-comments (comment form)', async () => {});
 });

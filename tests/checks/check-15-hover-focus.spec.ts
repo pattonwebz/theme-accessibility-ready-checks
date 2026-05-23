@@ -12,6 +12,6 @@ import { test } from '@playwright/test';
  * Tests that hover/focus content is dismissable, hoverable (pointer doesn't close it), persistent.
  */
 test.describe('check-15: hover/focus content', () => {
-  test.todo('hover-focus-1 — verify hover/focus content is dismissable (all templates)');
-  test.todo('hover-focus-2 — verify hover/focus content is hoverable and persistent (all templates)');
+  test.skip('hover-focus-1 — verify hover/focus content is dismissable (all templates)', async () => {});
+  test.skip('hover-focus-2 — verify hover/focus content is hoverable and persistent (all templates)', async () => {});
 });

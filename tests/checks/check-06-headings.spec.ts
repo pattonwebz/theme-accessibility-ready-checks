@@ -12,6 +12,6 @@ import { test } from '@playwright/test';
  * Tests that page has exactly one H1, heading hierarchy doesn't skip levels.
  */
 test.describe('check-06: headings', () => {
-  test.todo('heading-1 — verify page has exactly one H1 (all templates)');
-  test.todo('heading-2 — verify heading hierarchy does not skip levels (all templates)');
+  test.skip('heading-1 — verify page has exactly one H1 (all templates)', async () => {});
+  test.skip('heading-2 — verify heading hierarchy does not skip levels (all templates)', async () => {});
 });

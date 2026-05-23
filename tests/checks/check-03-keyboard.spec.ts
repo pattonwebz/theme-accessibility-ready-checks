@@ -12,10 +12,10 @@ import { test } from '@playwright/test';
  * Tests that all interactive elements are reachable by Tab, no keyboard traps exist, focus visible throughout.
  */
 test.describe('check-03: keyboard navigation', () => {
-  test.todo('keyboard-1 — verify all interactive elements reachable by Tab (all templates, desktop)');
-  test.todo('keyboard-1 — verify no keyboard traps exist (all templates, desktop)');
-  test.todo('keyboard-1 — verify focus visible throughout navigation (all templates, desktop)');
-  test.todo('keyboard-mobile-1 — verify all interactive elements reachable by Tab (all templates, mobile)');
-  test.todo('keyboard-mobile-1 — verify no keyboard traps exist (all templates, mobile)');
-  test.todo('keyboard-mobile-1 — verify focus visible throughout navigation (all templates, mobile)');
+  test.skip('keyboard-1 — verify all interactive elements reachable by Tab (all templates, desktop)', async () => {});
+  test.skip('keyboard-1 — verify no keyboard traps exist (all templates, desktop)', async () => {});
+  test.skip('keyboard-1 — verify focus visible throughout navigation (all templates, desktop)', async () => {});
+  test.skip('keyboard-mobile-1 — verify all interactive elements reachable by Tab (all templates, mobile)', async () => {});
+  test.skip('keyboard-mobile-1 — verify no keyboard traps exist (all templates, mobile)', async () => {});
+  test.skip('keyboard-mobile-1 — verify focus visible throughout navigation (all templates, mobile)', async () => {});
 });

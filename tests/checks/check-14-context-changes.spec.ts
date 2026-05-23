@@ -12,6 +12,6 @@ import { test } from '@playwright/test';
  * Tests that no automatic context changes occur on focus or input.
  */
 test.describe('check-14: context changes', () => {
-  test.todo('context-change-1 — verify no automatic context changes on focus (all templates)');
-  test.todo('context-change-2 — verify no automatic context changes on input (all templates)');
+  test.skip('context-change-1 — verify no automatic context changes on focus (all templates)', async () => {});
+  test.skip('context-change-2 — verify no automatic context changes on input (all templates)', async () => {});
 });

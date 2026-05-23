@@ -14,5 +14,5 @@ import { test } from '@playwright/test';
  * Note: File scanner approach deferred; uses computed styles for now.
  */
 test.describe('check-16: screen reader text', () => {
-  test.todo('screen-reader-text-1 — verify .screen-reader-text class exists and is implemented correctly');
+  test.skip('screen-reader-text-1 — verify .screen-reader-text class exists and is implemented correctly', async () => {});
 });

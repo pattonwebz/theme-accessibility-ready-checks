@@ -12,10 +12,10 @@ import { test } from '@playwright/test';
  * Tests landmark structure: header, nav(s) with names, main, footer, no duplicates, html5 theme support.
  */
 test.describe('check-02: landmarks', () => {
-  test.todo('landmark-1 — verify header landmark exists (all templates)');
-  test.todo('landmark-2 — verify nav landmark(s) exist with accessible names (all templates)');
-  test.todo('landmark-3 — verify main landmark exists (all templates)');
-  test.todo('landmark-4 — verify footer landmark exists (all templates)');
-  test.todo('landmark-5 — verify no duplicate main/header/footer landmarks (all templates)');
-  test.todo('landmark-6 — verify theme declares HTML5 theme support via REST endpoint');
+  test.skip('landmark-1 — verify header landmark exists (all templates)', async () => {});
+  test.skip('landmark-2 — verify nav landmark(s) exist with accessible names (all templates)', async () => {});
+  test.skip('landmark-3 — verify main landmark exists (all templates)', async () => {});
+  test.skip('landmark-4 — verify footer landmark exists (all templates)', async () => {});
+  test.skip('landmark-5 — verify no duplicate main/header/footer landmarks (all templates)', async () => {});
+  test.skip('landmark-6 — verify theme declares HTML5 theme support via REST endpoint', async () => {});
 });

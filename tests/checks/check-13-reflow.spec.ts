@@ -13,7 +13,7 @@ import { test } from '@playwright/test';
  * content is not clipped at min widths.
  */
 test.describe('check-13: reflow', () => {
-  test.todo('reflow-1 — verify content reflows at 320px without horizontal scrolling (all templates)');
-  test.todo('reflow-2 — verify text spacing can be increased without content loss (all templates)');
-  test.todo('reflow-3 — verify content is not clipped at min widths (all templates)');
+  test.skip('reflow-1 — verify content reflows at 320px without horizontal scrolling (all templates)', async () => {});
+  test.skip('reflow-2 — verify text spacing can be increased without content loss (all templates)', async () => {});
+  test.skip('reflow-3 — verify content is not clipped at min widths (all templates)', async () => {});
 });

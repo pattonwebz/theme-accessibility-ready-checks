@@ -12,7 +12,7 @@ import { test } from '@playwright/test';
  * Tests that links within body text are distinguishable (underlined or equivalent visual indicator).
  */
 test.describe('check-07: underlined links', () => {
-  test.todo('link-underline-1 — verify body text links are distinguishable on post-with-comments');
-  test.todo('link-underline-1 — verify body text links are distinguishable on page-markup');
-  test.todo('link-underline-1 — verify body text links are distinguishable on block-patterns');
+  test.skip('link-underline-1 — verify body text links are distinguishable on post-with-comments', async () => {});
+  test.skip('link-underline-1 — verify body text links are distinguishable on page-markup', async () => {});
+  test.skip('link-underline-1 — verify body text links are distinguishable on block-patterns', async () => {});
 });

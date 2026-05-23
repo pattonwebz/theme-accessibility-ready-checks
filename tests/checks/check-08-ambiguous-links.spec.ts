@@ -12,5 +12,5 @@ import { test } from '@playwright/test';
  * Tests that no links have ambiguous text like "click here", "read more", "learn more" without context.
  */
 test.describe('check-08: ambiguous links', () => {
-  test.todo('link-ambiguous-1 — verify no ambiguous link text on all templates');
+  test.skip('link-ambiguous-1 — verify no ambiguous link text on all templates', async () => {});
 });

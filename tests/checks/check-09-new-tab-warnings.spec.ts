@@ -13,5 +13,5 @@ import { test } from '@playwright/test';
  * Note: File scanner approach deferred; uses DOM inspection for now.
  */
 test.describe('check-09: new tab warnings', () => {
-  test.todo('new-tab-1 — verify links with target="_blank" have warnings (all templates)');
+  test.skip('new-tab-1 — verify links with target="_blank" have warnings (all templates)', async () => {});
 });

@@ -13,6 +13,6 @@ import { test } from '@playwright/test';
  * Note: Custom suspicious-alt rule to be implemented separately.
  */
 test.describe('check-11: alt text', () => {
-  test.todo('alt-text-1 — verify all images have appropriate alt text (all templates)');
-  test.todo('alt-text-1 — verify no generic/suspicious alt text patterns (all templates)');
+  test.skip('alt-text-1 — verify all images have appropriate alt text (all templates)', async () => {});
+  test.skip('alt-text-1 — verify no generic/suspicious alt text patterns (all templates)', async () => {});
 });

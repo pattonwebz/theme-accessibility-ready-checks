@@ -12,9 +12,9 @@ import { test } from '@playwright/test';
  * Tests that buttons and links have accessible names, mobile menu has accessible name.
  */
 test.describe('check-04: controls', () => {
-  test.todo('controls-1 — verify all buttons have accessible names (all templates, desktop)');
-  test.todo('controls-2 — verify all links have accessible names (all templates, desktop)');
-  test.todo('controls-1 — verify all buttons have accessible names (all templates, mobile)');
-  test.todo('controls-2 — verify all links have accessible names (all templates, mobile)');
-  test.todo('controls-mobile-1 — verify mobile menu has accessible name (all templates, mobile)');
+  test.skip('controls-1 — verify all buttons have accessible names (all templates, desktop)', async () => {});
+  test.skip('controls-2 — verify all links have accessible names (all templates, desktop)', async () => {});
+  test.skip('controls-1 — verify all buttons have accessible names (all templates, mobile)', async () => {});
+  test.skip('controls-2 — verify all links have accessible names (all templates, mobile)', async () => {});
+  test.skip('controls-mobile-1 — verify mobile menu has accessible name (all templates, mobile)', async () => {});
 });
