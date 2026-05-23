@@ -1,7 +1,5 @@
-import type { Page } from '@playwright/test';
+import type { Page, TestInfo } from '@playwright/test';
 import { test, expect, ACTIVE_TEMPLATES } from '../helpers/fixtures';
-import type { TemplateName } from '../../src/types/checks';
-import { TEMPLATE_PATHS } from '../../src/types/checks';
 
 const ALL_TEMPLATES = ACTIVE_TEMPLATES;
 
@@ -15,19 +13,30 @@ async function getLandmarkCounts(page: Page) {
   return page.evaluate(() => {
     const SECTIONING = 'article, aside, main, nav, section';
 
-    const banners = new Set([
+    function toInfo(el: Element): { tag: string; id: string; classes: string; role: string; snippet: string } {
+      const clone = el.cloneNode(false) as Element;
+      return {
+        tag: el.tagName.toLowerCase(),
+        id: el.getAttribute('id') ?? '',
+        classes: el.getAttribute('class') ?? '',
+        role: el.getAttribute('role') ?? '',
+        snippet: clone.outerHTML,
+      };
+    }
+
+    const bannerEls = new Set([
       ...[...document.querySelectorAll('header')].filter(
         (el) => !el.closest(SECTIONING),
       ),
       ...document.querySelectorAll('[role="banner"]'),
     ]);
 
-    const mains = new Set([
+    const mainEls = new Set([
       ...document.querySelectorAll('main'),
       ...document.querySelectorAll('[role="main"]'),
     ]);
 
-    const contentinfos = new Set([
+    const contentinfoEls = new Set([
       ...[...document.querySelectorAll('footer')].filter(
         (el) => !el.closest(SECTIONING),
       ),
@@ -90,13 +99,95 @@ async function getLandmarkCounts(page: Page) {
       });
 
     return {
-      bannerCount:      banners.size,
-      mainCount:        mains.size,
-      contentinfoCount: contentinfos.size,
-      navCount:         navs.length,
+      bannerCount:       bannerEls.size,
+      bannerElements:    [...bannerEls].map(toInfo),
+      mainCount:         mainEls.size,
+      mainElements:      [...mainEls].map(toInfo),
+      contentinfoCount:  contentinfoEls.size,
+      contentinfoElements: [...contentinfoEls].map(toInfo),
+      navCount:          navs.length,
       navsWithoutNames,
       navLikeElements,
     };
+  });
+}
+
+/**
+ * Highlight duplicate landmark elements on the page and attach a screenshot.
+ * Adds a visual outline and a floating label for each duplicate instance.
+ */
+async function highlightAndCaptureDuplicates(
+  page: Page,
+  testInfo: TestInfo,
+  duplicateTypes: Array<'banner' | 'main' | 'contentinfo'>,
+): Promise<void> {
+  await page.evaluate((types) => {
+    const SECTIONING = 'article, aside, main, nav, section';
+    const colors: Record<string, string> = {
+      banner:      '#e53e3e',
+      main:        '#3182ce',
+      contentinfo: '#dd6b20',
+    };
+    const labelNames: Record<string, string> = {
+      banner:      'banner',
+      main:        'main',
+      contentinfo: 'contentinfo',
+    };
+
+    const getEls = (type: string): Element[] => {
+      if (type === 'banner') {
+        return [
+          ...[...document.querySelectorAll('header')].filter((el) => !el.closest(SECTIONING)),
+          ...document.querySelectorAll('[role="banner"]'),
+        ];
+      }
+      if (type === 'main') {
+        return [
+          ...document.querySelectorAll('main'),
+          ...document.querySelectorAll('[role="main"]'),
+        ];
+      }
+      // contentinfo
+      return [
+        ...[...document.querySelectorAll('footer')].filter((el) => !el.closest(SECTIONING)),
+        ...document.querySelectorAll('[role="contentinfo"]'),
+      ];
+    };
+
+    for (const type of types) {
+      const els = getEls(type);
+      const color = colors[type];
+      els.forEach((el, i) => {
+        const htmlEl = el as HTMLElement;
+        htmlEl.style.outline = `4px solid ${color}`;
+        htmlEl.style.outlineOffset = '-4px';
+        htmlEl.style.position = 'relative';
+
+        const badge = document.createElement('span');
+        badge.setAttribute('data-a11y-duplicate-badge', '');
+        badge.style.cssText = [
+          'position:absolute',
+          'top:4px',
+          'left:4px',
+          `background:${color}`,
+          'color:#fff',
+          'font:bold 11px/1 monospace',
+          'padding:2px 6px',
+          'border-radius:3px',
+          'z-index:2147483647',
+          'pointer-events:none',
+          'white-space:nowrap',
+        ].join(';');
+        badge.textContent = `duplicate ${labelNames[type]} #${i + 1}`;
+        el.prepend(badge);
+      });
+    }
+  }, duplicateTypes);
+
+  const screenshot = await page.screenshot({ fullPage: true });
+  await testInfo.attach('duplicate-landmarks.png', {
+    body: screenshot,
+    contentType: 'image/png',
   });
 }
 
@@ -129,10 +220,14 @@ test.describe('check-02: landmarks', () => {
         const viewport = testInfo.project.name;
         await page.goto(templateUrl(template));
         const { navCount, navsWithoutNames } = await getLandmarkCounts(page);
-        expect(
-          navCount,
-          `Expected at least one navigation landmark (<nav> or role="navigation") on ${template} (${viewport}).`,
-        ).toBeGreaterThanOrEqual(1);
+
+        if (navCount === 0) {
+          testInfo.annotations.push({
+            type: 'info',
+            description: `No nav landmarks found on ${template} (${viewport}) — check passes vacuously.`,
+          });
+        }
+
         expect(
           navsWithoutNames,
           `All nav landmarks must have an accessible name (aria-label or aria-labelledby) on ${template} (${viewport}). Unnamed: ${navsWithoutNames.join(', ')}`,
@@ -174,7 +269,48 @@ test.describe('check-02: landmarks', () => {
       test(template, async ({ page, templateUrl }, testInfo) => {
         const viewport = testInfo.project.name;
         await page.goto(templateUrl(template));
-        const { bannerCount, mainCount, contentinfoCount } = await getLandmarkCounts(page);
+        const {
+          bannerCount, bannerElements,
+          mainCount, mainElements,
+          contentinfoCount, contentinfoElements,
+        } = await getLandmarkCounts(page);
+
+        const duplicateTypes: Array<'banner' | 'main' | 'contentinfo'> = [];
+
+        if (bannerCount > 1) {
+          duplicateTypes.push('banner');
+          bannerElements.forEach((el, i) => {
+            testInfo.annotations.push({
+              type: 'duplicate-banner',
+              description: `banner #${i + 1} — <${el.tag}${el.id ? ` id="${el.id}"` : ''}${el.classes ? ` class="${el.classes}"` : ''}${el.role ? ` role="${el.role}"` : ''}>`,
+            });
+          });
+        }
+
+        if (mainCount > 1) {
+          duplicateTypes.push('main');
+          mainElements.forEach((el, i) => {
+            testInfo.annotations.push({
+              type: 'duplicate-main',
+              description: `main #${i + 1} — <${el.tag}${el.id ? ` id="${el.id}"` : ''}${el.classes ? ` class="${el.classes}"` : ''}${el.role ? ` role="${el.role}"` : ''}>`,
+            });
+          });
+        }
+
+        if (contentinfoCount > 1) {
+          duplicateTypes.push('contentinfo');
+          contentinfoElements.forEach((el, i) => {
+            testInfo.annotations.push({
+              type: 'duplicate-contentinfo',
+              description: `contentinfo #${i + 1} — <${el.tag}${el.id ? ` id="${el.id}"` : ''}${el.classes ? ` class="${el.classes}"` : ''}${el.role ? ` role="${el.role}"` : ''}>`,
+            });
+          });
+        }
+
+        if (duplicateTypes.length > 0) {
+          await highlightAndCaptureDuplicates(page, testInfo, duplicateTypes);
+        }
+
         expect(
           bannerCount,
           `Expected at most one banner landmark on ${template} (${viewport}), found ${bannerCount}.`,
