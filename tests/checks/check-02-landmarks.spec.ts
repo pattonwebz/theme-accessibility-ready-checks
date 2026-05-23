@@ -1,9 +1,9 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../helpers/fixtures';
+import { test, expect, ACTIVE_TEMPLATES } from '../helpers/fixtures';
 import type { TemplateName } from '../../src/types/checks';
 import { TEMPLATE_PATHS } from '../../src/types/checks';
 
-const ALL_TEMPLATES = Object.keys(TEMPLATE_PATHS) as TemplateName[];
+const ALL_TEMPLATES = ACTIVE_TEMPLATES;
 
 /**
  * Evaluate landmark counts in the page DOM.
@@ -43,11 +43,13 @@ async function getLandmarkCounts(page: Page) {
       .filter((nav) => {
         const label = nav.getAttribute('aria-label')?.trim();
         if (label) return false;
+
         const labelledById = nav.getAttribute('aria-labelledby');
         if (labelledById) {
           const el = document.getElementById(labelledById);
           if (el?.textContent?.trim()) return false;
         }
+
         return true;
       })
       .map((nav) => {
@@ -55,12 +57,45 @@ async function getLandmarkCounts(page: Page) {
         return clone.outerHTML;
       });
 
+    // Detect nav-like structures not wrapped in a proper <nav> or role="navigation".
+    // Heuristics: class/id matching nav/menu patterns, or link-heavy lists in header/footer.
+    const NAV_PATTERN = /\b(nav|menu|navigation)\b/i;
+
+    const navLikeElements = (
+      [...document.querySelectorAll('ul, ol, div, section')] as Element[]
+    )
+      .filter((el) => {
+        if (el.closest('nav') || el.closest('[role="navigation"]')) return false;
+
+        const cls = el.getAttribute('class') ?? '';
+        const id  = el.getAttribute('id')    ?? '';
+
+        if (NAV_PATTERN.test(cls) || NAV_PATTERN.test(id)) {
+          return el.querySelectorAll('a[href]').length >= 2;
+        }
+
+        if (
+          (el.tagName === 'UL' || el.tagName === 'OL') &&
+          el.closest('header, footer') &&
+          el.querySelectorAll('a[href]').length >= 3
+        ) {
+          return true;
+        }
+
+        return false;
+      })
+      .map((el) => {
+        const clone = el.cloneNode(false) as Element;
+        return clone.outerHTML;
+      });
+
     return {
-      bannerCount:     banners.size,
-      mainCount:       mains.size,
+      bannerCount:      banners.size,
+      mainCount:        mains.size,
       contentinfoCount: contentinfos.size,
-      navCount:        navs.length,
+      navCount:         navs.length,
       navsWithoutNames,
+      navLikeElements,
     };
   });
 }
