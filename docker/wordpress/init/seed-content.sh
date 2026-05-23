@@ -262,33 +262,35 @@ $WP option update page_on_front $HOME_PAGE_ID
 $WP option update page_for_posts $BLOG_PAGE_ID
 echo "    Set Home as front page and Blog as posts page"
 
-# Create Primary Navigation menu
-echo "==> Creating Primary Navigation menu..."
-MENU_EXISTS=$($WP menu list --format=count 2>/dev/null)
-if [ "$MENU_EXISTS" -eq "0" ] || ! $WP menu list | grep -q "Primary Navigation"; then
-  MENU_ID=$($WP menu create "Primary Navigation" --porcelain)
-  echo "    Created menu 'Primary Navigation' (ID: $MENU_ID)"
-  
-  # Add menu items
-  $WP menu item add-post $MENU_ID $HOME_PAGE_ID --title="Home"
-  $WP menu item add-post $MENU_ID $BLOG_PAGE_ID --title="Blog"
-  $WP menu item add-post $MENU_ID $POST_1_ID --title="Block Patterns Post"
-  $WP menu item add-custom $MENU_ID "External Link" "https://wordpress.org/accessibility/" --porcelain
-  echo "    Added 4 items to Primary Navigation"
-  
-  # Assign to primary location (best-effort, theme-dependent)
-  LOCATIONS=$($WP menu location list --format=csv --fields=location 2>/dev/null | tail -n +2)
-  if echo "$LOCATIONS" | grep -q "primary"; then
-    $WP menu location assign $MENU_ID primary
-    echo "    Assigned menu to 'primary' location"
-  elif echo "$LOCATIONS" | grep -q "primary-menu"; then
-    $WP menu location assign $MENU_ID primary-menu
-    echo "    Assigned menu to 'primary-menu' location"
-  else
-    echo "    Warning: No 'primary' or 'primary-menu' location found; menu created but not assigned"
-  fi
+# Create accessibility test navigation menu
+MENU_NAME="Accessibility Test Menu"
+echo "==> Creating accessibility test navigation menu..."
+LOCATIONS=$($WP nav menu location list --fields=location --format=csv 2>/dev/null | tail -n +2)
+
+if [ -z "$LOCATIONS" ]; then
+  echo "    No nav menu locations registered by theme - skipping menu assignment"
 else
-  echo "    Primary Navigation menu already exists"
+  if $WP nav menu list --fields=name --format=csv 2>/dev/null | tail -n +2 | grep -Fxq "$MENU_NAME"; then
+    echo "    Menu '$MENU_NAME' already exists, skipping creation"
+  else
+    MENU_ID=$($WP nav menu create "$MENU_NAME" --porcelain)
+    echo "    Created menu '$MENU_NAME' (ID: $MENU_ID)"
+
+    HOME_MENU_ID=$($WP nav menu item add-post "$MENU_NAME" "$HOME_PAGE_ID" --title="Home" --porcelain)
+    ABOUT_ID=$($WP nav menu item add-post "$MENU_NAME" "$PARENT_PAGE_ID" --title="About" --porcelain)
+    OUR_TEAM_ID=$($WP nav menu item add-custom "$MENU_NAME" "Our Team" "#" --parent-id="$ABOUT_ID" --porcelain)
+    SERVICES_ID=$($WP nav menu item add-post "$MENU_NAME" "$MARKUP_PAGE_ID" --title="Services" --porcelain)
+    ACCESSIBILITY_ID=$($WP nav menu item add-post "$MENU_NAME" "$PATTERNS_PAGE_ID" --title="Accessibility" --parent-id="$SERVICES_ID" --porcelain)
+    WCAG_ID=$($WP nav menu item add-custom "$MENU_NAME" "WCAG Compliance" "#" --parent-id="$ACCESSIBILITY_ID" --porcelain)
+    BLOG_ID=$($WP nav menu item add-post "$MENU_NAME" "$BLOG_PAGE_ID" --title="Blog" --porcelain)
+    echo "    Added nested menu items (Home: $HOME_MENU_ID, About: $ABOUT_ID, Our Team: $OUR_TEAM_ID, Services: $SERVICES_ID, Accessibility: $ACCESSIBILITY_ID, WCAG Compliance: $WCAG_ID, Blog: $BLOG_ID)"
+  fi
+
+  while IFS= read -r location; do
+    [ -z "$location" ] && continue
+    $WP nav menu location assign "$MENU_NAME" "$location"
+    echo "    Assigned menu '$MENU_NAME' to location: $location"
+  done <<< "$LOCATIONS"
 fi
 
 echo "==> Content seeding complete"
