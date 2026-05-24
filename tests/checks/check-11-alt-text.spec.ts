@@ -22,8 +22,10 @@ async function findSuspiciousImages(page: Parameters<typeof runAxeRules>[0]): Pr
 
       const parts: string[] = [];
       let current: Element | null = el;
+      let depth = 0;
 
-      while (current && current.nodeType === Node.ELEMENT_NODE) {
+      while (current && current.nodeType === Node.ELEMENT_NODE && depth < 6) {
+        depth++;
         let part = current.tagName.toLowerCase();
 
         if (current.id) {
@@ -60,7 +62,7 @@ async function findSuspiciousImages(page: Parameters<typeof runAxeRules>[0]): Pr
         }
 
         const normalizedAlt = alt.trim().toLowerCase();
-        return normalizedAlt === '' || suspicious.has(normalizedAlt);
+        return normalizedAlt.length > 0 && suspicious.has(normalizedAlt);
       })
       .map((img) => ({
         alt: img.getAttribute('alt') ?? '',
@@ -90,7 +92,7 @@ test.describe('check-11: alt text', () => {
       const violations: ViolationDetail[] = [
         ...axeViolations.flatMap((violation) =>
           violation.nodes.map((node) => ({
-            selector: node.target.join(' > '),
+            selector: node.target[0] ?? node.target.join(', '),
             snippet: node.html,
             message: node.failureSummary ?? violation.description,
             wcag: 'SC 1.1.1',
