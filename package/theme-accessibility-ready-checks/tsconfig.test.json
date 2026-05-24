@@ -1,9 +1,13 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
     "noEmit": true,
     "types": ["node", "@playwright/test"]
   },
-  "include": ["src/**/*", "tests/**/*", "playwright.config.ts"]
+  "include": [
+    "./src/**/*",
+    "./tests/helpers/**/*",
+    "./tests/checks/check-15-hover-focus.spec.ts",
+    "./playwright.config.ts"
+  ]
 }

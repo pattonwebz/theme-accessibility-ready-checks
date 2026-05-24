@@ -25,11 +25,11 @@ async function findHoverFocusCandidates(page: Page): Promise<HoverFocusCandidate
 
       while (current && current !== document.body && current.nodeType === Node.ELEMENT_NODE) {
         let segment = current.localName;
-        const parent = current.parentElement;
+        const parent: Element | null = current.parentElement;
 
         if (parent) {
           const siblingsOfSameType = Array.from(parent.children)
-            .filter((sibling) => sibling.localName === current?.localName);
+            .filter((sibling: Element) => sibling.localName === current?.localName);
           if (siblingsOfSameType.length > 1) {
             segment += `:nth-of-type(${siblingsOfSameType.indexOf(current) + 1})`;
           }
@@ -135,6 +135,27 @@ async function movePointerToElement(page: Page, selector: string): Promise<boole
   return true;
 }
 
+async function dismissWithEscape(page: Page): Promise<void> {
+  await page.keyboard.press('Escape').catch(() => undefined);
+  await page.waitForTimeout(300);
+}
+
+async function resetPageState(page: Page): Promise<void> {
+  await dismissWithEscape(page);
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  }).catch(() => undefined);
+
+  const viewport = page.viewportSize();
+  if (viewport) {
+    await page.mouse.move(Math.max(1, Math.floor(viewport.width / 2)), Math.max(1, viewport.height - 1), { steps: 10 }).catch(() => undefined);
+  }
+
+  await page.waitForTimeout(300);
+}
+
 async function triggerByFocus(page: Page, candidate: HoverFocusCandidate): Promise<boolean> {
   const trigger = page.locator(candidate.triggerSelector).first();
   if (await trigger.count() === 0) {
@@ -190,20 +211,30 @@ test.describe('check-15: hover/focus content', () => {
       let testedCandidate = false;
 
       for (const candidate of candidates) {
-        await page.goto(url);
+        await resetPageState(page);
 
         const appearedOnFocus = await triggerByFocus(page, candidate);
-        const appearedOnHover = appearedOnFocus ? false : await triggerByHover(page, candidate);
-        if (!appearedOnFocus && !appearedOnHover) {
+        if (appearedOnFocus) {
+          testedCandidate = true;
+          await dismissWithEscape(page);
+
+          if (await isVisible(page, candidate.submenuSelector)) {
+            violations.push(buildViolation(candidate, 'Focus-triggered content remained visible after pressing Escape.'));
+          }
+        }
+
+        await resetPageState(page);
+
+        const appearedOnHover = await triggerByHover(page, candidate);
+        if (!appearedOnHover) {
           continue;
         }
 
         testedCandidate = true;
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
+        await dismissWithEscape(page);
 
         if (await isVisible(page, candidate.submenuSelector)) {
-          violations.push(buildViolation(candidate, 'Hover/focus content remained visible after pressing Escape.'));
+          violations.push(buildViolation(candidate, 'Hover-triggered content remained visible after pressing Escape.'));
         }
       }
 
@@ -238,7 +269,7 @@ test.describe('check-15: hover/focus content', () => {
       let testedCandidate = false;
 
       for (const candidate of candidates) {
-        await page.goto(url);
+        await resetPageState(page);
 
         const appeared = await triggerByHover(page, candidate);
         if (!appeared) {
@@ -252,6 +283,8 @@ test.describe('check-15: hover/focus content', () => {
         if (!movedToSubmenu || !(await isVisible(page, candidate.submenuSelector))) {
           violations.push(buildViolation(candidate, 'Dropdown content did not remain visible while moving the pointer onto it.'));
         }
+
+        await resetPageState(page);
       }
 
       const result: CheckResult = testedCandidate
