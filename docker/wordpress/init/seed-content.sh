@@ -333,19 +333,30 @@ echo "=== Block Theme Navigation ==="
 if $WP eval "echo (function_exists('wp_is_block_theme') && wp_is_block_theme() ? 'block' : 'classic');" 2>/dev/null | grep -q "^block$"; then
   echo "Block theme active - setting up accessible navigation..."
   
+  # Build page URLs for explicit nested navigation links.
+  # Two branches: About > Our Team (2 levels), Services > Accessibility > WCAG Compliance (3 levels).
+  HOME_URL=$($WP eval 'echo get_permalink('$HOME_PAGE_ID');' 2>/dev/null || echo "/")
+  ABOUT_URL=$($WP eval 'echo get_permalink('$PARENT_PAGE_ID');' 2>/dev/null || echo "#")
+  SERVICES_URL=$($WP eval 'echo get_permalink('$MARKUP_PAGE_ID');' 2>/dev/null || echo "#")
+  ACCESSIBILITY_URL=$($WP eval 'echo get_permalink('$PATTERNS_PAGE_ID');' 2>/dev/null || echo "#")
+  BLOG_URL=$($WP eval 'echo get_permalink('$BLOG_PAGE_ID');' 2>/dev/null || echo "#")
+
+  MAIN_NAV_CONTENT='<!-- wp:navigation-link {"label":"Home","url":"'$HOME_URL'"} /--><!-- wp:navigation-submenu {"label":"About","url":"'$ABOUT_URL'"} --><!-- wp:navigation-link {"label":"Our Team","url":"#"} /--><!-- /wp:navigation-submenu --><!-- wp:navigation-submenu {"label":"Services","url":"'$SERVICES_URL'"} --><!-- wp:navigation-submenu {"label":"Accessibility","url":"'$ACCESSIBILITY_URL'"} --><!-- wp:navigation-link {"label":"WCAG Compliance","url":"#"} /--><!-- /wp:navigation-submenu --><!-- /wp:navigation-submenu --><!-- wp:navigation-link {"label":"Blog","url":"'$BLOG_URL'"} /-->'
+
   # Create or update wp_navigation post with title "Main"
   EXISTING_NAV_ID=$($WP post list --post_type=wp_navigation --post_title="Main" --format=ids 2>/dev/null || echo "")
   if [ -n "$EXISTING_NAV_ID" ]; then
     NAV_POST_ID=$EXISTING_NAV_ID
-    echo "    wp_navigation post 'Main' already exists (ID: $NAV_POST_ID)"
+    $WP post update $NAV_POST_ID --post_content="$MAIN_NAV_CONTENT" 2>/dev/null || true
+    echo "    wp_navigation post 'Main' already exists (ID: $NAV_POST_ID) — updated with nested items"
   else
     NAV_POST_ID=$($WP post create \
       --post_type=wp_navigation \
       --post_title="Main" \
-      --post_content="<!-- wp:page-list /-->" \
+      --post_content="$MAIN_NAV_CONTENT" \
       --post_status=publish \
       --porcelain 2>/dev/null)
-    echo "    Created wp_navigation post 'Main' (ID: $NAV_POST_ID)"
+    echo "    Created wp_navigation post 'Main' (ID: $NAV_POST_ID) with 2-level (About) and 3-level (Services) submenus"
   fi
   
   # Get active block theme name
