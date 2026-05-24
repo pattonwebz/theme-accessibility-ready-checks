@@ -143,7 +143,7 @@ async function scrollFocusedIntoView(page: Page): Promise<void> {
   await page.evaluate(() => {
     const el = document.activeElement;
     if (el instanceof HTMLElement && el !== document.body) {
-      el.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+      el.scrollIntoView({ block: 'nearest', behavior: 'auto' });
     }
   });
 }
