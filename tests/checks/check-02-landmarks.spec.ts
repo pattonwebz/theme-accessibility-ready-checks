@@ -327,7 +327,8 @@ test.describe('check-02: landmarks', () => {
     }
   });
 
-  test('landmark-6 — theme declares html5 navigation-widget support', async ({ page, baseURL }) => {
+  test('landmark-6 — theme declares html5 navigation-widget support', async ({ page, baseURL }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'REST endpoint check — only needs to run once, skipped on mobile project.');
     const base = baseURL ?? 'http://localhost:8080';
     const response = await page.request.get(`${base}/wp-json/a11y-tests/v1/theme-support`);
     expect(

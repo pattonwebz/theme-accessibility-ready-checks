@@ -25,7 +25,8 @@ const STATEMENT_PATTERNS = [
 ];
 
 test.describe('check-16 — accessibility statement present in theme readme', () => {
-  test('readme', async ({ request, baseURL }) => {
+  test('readme', async ({ request, baseURL }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'readme.txt fetch — only needs to run once, skipped on mobile project.');
     const themeSlug = process.env.A11Y_THEME_SLUG ?? '';
 
     if (!themeSlug) {
