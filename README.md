@@ -29,6 +29,14 @@ This suite verifies WordPress accessibility-ready theme tag requirements, includ
 - **Color Contrast** — Sufficient contrast ratios for text and UI elements
 - **Screen Reader Compatibility** — Proper heading hierarchy and accessible content
 
+### Checks requiring manual review
+
+Three checks in this suite cannot be fully automated and will always require a human reviewer regardless of the automated result:
+
+- **Check 16 — Accessibility Statement** — The automated check detects whether the theme's `readme.txt` contains accessibility statement language, but a reviewer must confirm the statement is meaningful and accurate.
+- **Check 17 — No inaccessible plugins required** — Determining whether a required or recommended plugin is accessible requires human evaluation; there is no reliable automated signal.
+- **Check 18 — Screen reader text** — Verifying that screen-reader-only text conveys the correct meaning requires human judgement.
+
 ## How It Works
 
 1. **Docker Compose** spins up a containerized WordPress instance with the target theme installed
