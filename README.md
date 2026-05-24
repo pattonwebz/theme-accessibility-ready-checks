@@ -80,6 +80,7 @@ The theme is downloaded from WordPress.org automatically using WP-CLI at contain
 | `npm run theme:switch` | Install and activate `A11Y_THEME_SLUG` in the running container via WP-CLI (no restart needed) |
 | `npm run test:theme` | Full clean run: teardown → setup → switch theme → test → teardown |
 | `npm run test:theme:keep` | Start if needed, switch theme, run tests — leave containers running for fast re-runs |
+| `npm run test:theme:quick` | Switch theme and run tests — **assumes containers are already running**, skips all Docker/wait overhead |
 
 ### Environment Variables
 
