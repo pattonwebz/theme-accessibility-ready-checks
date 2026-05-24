@@ -70,10 +70,10 @@ test.describe('check-08: ambiguous links', () => {
       `link-ambiguous-1 — no ambiguous link text on ${templateName}`,
       async ({ page, templateUrl }, testInfo) => {
         // Desktop-only check — skip on mobile project
-        if (testInfo.project.name !== 'desktop') {
-          testInfo.skip();
-          return;
-        }
+        testInfo.skip(
+          testInfo.project.name !== 'desktop',
+          'Ambiguous link detection is a desktop-only check',
+        );
 
         await page.goto(templateUrl(templateName));
 
@@ -91,7 +91,7 @@ test.describe('check-08: ambiguous links', () => {
             /** Compute the accessible name for a link element. */
             function computeAccessibleName(el: HTMLAnchorElement): string {
               // 1. aria-label takes precedence
-              const ariaLabel = el.getAttribute('aria-label')?.trim();
+              const ariaLabel = el.getAttribute('aria-label')?.replace(/\s+/g, ' ').trim();
               if (ariaLabel) return ariaLabel;
 
               // 2. aria-labelledby — concatenate text from all referenced IDs
@@ -99,29 +99,30 @@ test.describe('check-08: ambiguous links', () => {
               if (labelledBy) {
                 const parts = labelledBy
                   .split(/\s+/)
-                  .map((id) => document.getElementById(id)?.textContent?.trim() ?? '')
+                  .map((id) => document.getElementById(id)?.textContent?.replace(/\s+/g, ' ').trim() ?? '')
                   .filter(Boolean);
                 if (parts.length > 0) return parts.join(' ');
               }
 
               // 3. Visible text content (normalise whitespace)
-              return el.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+              return (el.innerText ?? el.textContent)?.replace(/\s+/g, ' ').trim() ?? '';
             }
 
             const links = [...document.querySelectorAll('a[href]')] as HTMLAnchorElement[];
             const violations: { href: string; accessibleName: string; snippet: string }[] = [];
 
             for (const link of links) {
-              const name = computeAccessibleName(link).toLowerCase();
+              const name     = computeAccessibleName(link);
+              const nameLower = name.toLowerCase();
 
               // Skip empty names (icon-only links) — those are caught by check-04
-              if (!name) continue;
+              if (!nameLower) continue;
 
               // Skip explicitly excluded navigational patterns
-              if (EXCLUDED.has(name)) continue;
+              if (EXCLUDED.has(nameLower)) continue;
 
               // Flag if the entire accessible name is an ambiguous pattern
-              if (AMBIGUOUS.has(name)) {
+              if (AMBIGUOUS.has(nameLower)) {
                 const clone = link.cloneNode(false) as Element;
                 violations.push({
                   href: link.getAttribute('href') ?? '',
