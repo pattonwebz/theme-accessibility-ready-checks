@@ -135,11 +135,15 @@ async function prepareForKeyboardTraversal(page: Page): Promise<void> {
   });
 }
 
+// Scroll the currently focused element into the nearest visible position.
+// Playwright's headless Tab key does not always auto-scroll elements into view,
+// which causes off-screen elements to appear under sticky headers and produces
+// false-positive obscuration results.
 async function scrollFocusedIntoView(page: Page): Promise<void> {
   await page.evaluate(() => {
-    const active = document.activeElement;
-    if (active instanceof HTMLElement) {
-      active.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    const el = document.activeElement;
+    if (el instanceof HTMLElement && el !== document.body) {
+      el.scrollIntoView({ block: 'nearest', behavior: 'auto' });
     }
   });
 }
