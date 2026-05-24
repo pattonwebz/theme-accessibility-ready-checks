@@ -18,13 +18,37 @@ echo "==> Re-assigning navigation menu to current theme locations..."
 if ! $WP menu list --fields=name --format=csv 2>/dev/null | tail -n +2 | tr -d '"' | grep -Fxq "$MENU_NAME"; then
   echo "    Menu '$MENU_NAME' not found - creating it now..."
   $WP menu create "$MENU_NAME" >/dev/null
-  # Populate with whatever published pages exist
-  $WP post list --post_type=page --post_status=publish --fields=ID,post_title --format=csv 2>/dev/null | \
-    tail -n +2 | while IFS=',' read -r pid ptitle; do
-      [ -z "$pid" ] && continue
-      $WP menu item add-post "$MENU_NAME" "$pid" --title="$ptitle" 2>/dev/null || true
-    done
-  echo "    Created menu '$MENU_NAME' with available pages"
+
+  # Look up seeded pages by slug so we can recreate the nested structure
+  HOME_ID=$($WP post list --post_type=page --post_name=home --format=ids 2>/dev/null | head -1)
+  ABOUT_ID=$($WP post list --post_type=page --post_name=accessibility-ready-test-pages --format=ids 2>/dev/null | head -1)
+  SERVICES_ID=$($WP post list --post_type=page --post_name=page-markup-and-formatting --format=ids 2>/dev/null | head -1)
+  ACCESSIBILITY_ID=$($WP post list --post_type=page --post_name=block-patterns --format=ids 2>/dev/null | head -1)
+  BLOG_ID=$($WP post list --post_type=page --post_name=blog --format=ids 2>/dev/null | head -1)
+
+  if [ -n "$HOME_ID" ] && [ -n "$ABOUT_ID" ] && [ -n "$SERVICES_ID" ] && [ -n "$ACCESSIBILITY_ID" ] && [ -n "$BLOG_ID" ]; then
+    # Recreate the seeded nested structure:
+    #   Home
+    #   About → Our Team (2 levels)
+    #   Services → Accessibility → WCAG Compliance (3 levels)
+    #   Blog
+    $WP menu item add-post "$MENU_NAME" "$HOME_ID" --title="Home" 2>/dev/null || true
+    ABOUT_ITEM_ID=$($WP menu item add-post "$MENU_NAME" "$ABOUT_ID" --title="About" --porcelain 2>/dev/null)
+    $WP menu item add-custom "$MENU_NAME" "Our Team" "#" --parent-id="$ABOUT_ITEM_ID" 2>/dev/null || true
+    SERVICES_ITEM_ID=$($WP menu item add-post "$MENU_NAME" "$SERVICES_ID" --title="Services" --porcelain 2>/dev/null)
+    ACCESSIBILITY_ITEM_ID=$($WP menu item add-post "$MENU_NAME" "$ACCESSIBILITY_ID" --title="Accessibility" --parent-id="$SERVICES_ITEM_ID" --porcelain 2>/dev/null)
+    $WP menu item add-custom "$MENU_NAME" "WCAG Compliance" "#" --parent-id="$ACCESSIBILITY_ITEM_ID" 2>/dev/null || true
+    $WP menu item add-post "$MENU_NAME" "$BLOG_ID" --title="Blog" 2>/dev/null || true
+    echo "    Created menu '$MENU_NAME' with nested structure (About>Our Team, Services>Accessibility>WCAG)"
+  else
+    # Fallback: flat list of all published pages if seeded pages not found
+    $WP post list --post_type=page --post_status=publish --fields=ID,post_title --format=csv 2>/dev/null | \
+      tail -n +2 | while IFS=',' read -r pid ptitle; do
+        [ -z "$pid" ] && continue
+        $WP menu item add-post "$MENU_NAME" "$pid" --title="$ptitle" 2>/dev/null || true
+      done
+    echo "    Created menu '$MENU_NAME' with flat page list (seeded pages not found)"
+  fi
 else
   echo "    Menu '$MENU_NAME' already exists"
 fi
