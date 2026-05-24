@@ -135,17 +135,18 @@ async function prepareForKeyboardTraversal(page: Page): Promise<void> {
   });
 }
 
-// Scroll the currently focused element into the nearest visible position.
-// Playwright's headless Tab key does not always auto-scroll elements into view,
-// which causes off-screen elements to appear under sticky headers and produces
-// false-positive obscuration results.
+// Scroll the currently focused element into the center of the viewport.
+// Headless Chromium doesn't flush layout/paint cycles synchronously after scrollIntoView,
+// so we await requestAnimationFrame to ensure the browser's layout engine has processed
+// the scroll before any subsequent getBoundingClientRect or elementFromPoint calls.
 async function scrollFocusedIntoView(page: Page): Promise<void> {
-  await page.evaluate(() => {
+  await page.evaluate(() => new Promise<void>((resolve) => {
     const el = document.activeElement;
     if (el instanceof HTMLElement && el !== document.body) {
-      el.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
     }
-  });
+    requestAnimationFrame(() => resolve());
+  }));
 }
 
 async function getInteractiveCandidates(page: Page): Promise<{
@@ -1161,6 +1162,10 @@ test.describe('check-03: keyboard navigation', () => {
         const reverseExpected = [...forwardSweep.uniqueOrder].reverse();
         const reverseSeen: string[] = [];
 
+        // Reset to clean state before reverse sweep: scroll to top and blur all elements
+        await prepareForKeyboardTraversal(page);
+
+        // Start Shift+Tab from the reset state
         for (let index = 0; index < reverseExpected.length; index += 1) {
           await page.keyboard.press('Shift+Tab');
           await page.waitForTimeout(TAB_DELAY_MS);
