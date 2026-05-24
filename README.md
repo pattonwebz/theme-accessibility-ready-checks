@@ -81,6 +81,26 @@ The theme is downloaded from WordPress.org automatically using WP-CLI at contain
 | `npm run test:theme` | Full clean run: teardown → setup → switch theme → test → teardown |
 | `npm run test:theme:keep` | Start if needed, switch theme, run tests — leave containers running for fast re-runs |
 
+### Environment Variables
+
+All variables are optional unless noted. Pass them as inline env vars or export them before running.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `A11Y_THEME_SLUG` | *(required)* | WordPress.org slug of the theme under test (e.g. `twentytwentyfour`) |
+| `A11Y_TEMPLATES` | all templates | Comma-separated list of template names to test (e.g. `front-page,single`). Omit to run all. |
+| `A11Y_BASE_URL` | `http://localhost:8080` | Base URL of the WordPress test instance |
+| `A11Y_OUTPUT_DIR` | `a11y-results` | Directory for screenshots, traces, and JSON/HTML reports |
+| `A11Y_WORKERS` | `1` | Number of Playwright workers. Default is serial (`1`) to preserve WordPress state consistency. Increase for read-only checks where parallel execution is safe (e.g. `A11Y_WORKERS=4`). |
+
+**Example — run with 4 workers against a single template:**
+
+```bash
+A11Y_WORKERS=4 A11Y_TEMPLATES=front-page A11Y_THEME_SLUG=twentytwentyfour npm run test:theme:keep
+```
+
+> **Note on `A11Y_WORKERS`:** Tests that mutate WordPress state (theme switching, menu or widget assignment) must run serially. Keep `A11Y_WORKERS=1` for those. Read-only checks (link styles, keyboard navigation, ARIA, etc.) are safe to parallelise.
+
 ### Test Results
 
 Screenshots and test artifacts are saved to `a11y-results/` (gitignored). Each run captures a screenshot after every test regardless of pass/fail.
