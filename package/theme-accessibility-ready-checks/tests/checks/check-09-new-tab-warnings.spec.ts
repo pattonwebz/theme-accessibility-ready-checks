@@ -10,7 +10,7 @@ type LinkWarningAnalysis = {
   hasWarning: boolean;
 };
 
-const WARNING_PATTERN = /\b(?:new tab|new window|opens? in(?: a)? new (?:tab|window)|opens? in)\b/i;
+const WARNING_PATTERN = /\b(?:new tab|new window|opens? in(?: a)? new (?:tab|window))\b/i;
 
 async function findTargetBlankLinksWithoutWarnings(page: import('@playwright/test').Page): Promise<ViolationDetail[]> {
   const findings = await page.evaluate<LinkWarningAnalysis[]>(({ warningPatternSource, warningPatternFlags }) => {
@@ -164,7 +164,7 @@ async function findTargetBlankLinksWithoutWarnings(page: import('@playwright/tes
       return normalizeWhitespace(adjacentTexts.join(' '));
     };
 
-    return Array.from(document.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]')).map((link) => {
+    return Array.from(document.querySelectorAll<HTMLAnchorElement>('a[target="_blank" i]')).map((link) => {
       const accessibleText = textFor(link);
       const adjacentText = adjacentTextFor(link);
       return {
