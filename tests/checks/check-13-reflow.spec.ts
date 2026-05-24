@@ -96,6 +96,13 @@ async function getTextClippingViolations(page: Page, tolerancePx = CLIPPING_TOLE
         continue;
       }
 
+      // Skip elements intentionally hidden via the screen-reader-text / visually-hidden
+      // pattern (e.g. WordPress skip links): position:absolute with 1×1 px client area.
+      // These are deliberately offscreen and are not a reflow concern.
+      if (element.clientWidth <= 1 && element.clientHeight <= 1) {
+        continue;
+      }
+
       if (element.scrollHeight <= element.clientHeight + tolerance) {
         continue;
       }
@@ -171,6 +178,12 @@ async function getMinWidthAndOverflowViolations(
 
       const clipsOverflow = style.overflow === 'hidden' || style.overflowX === 'hidden';
       if (!clipsOverflow) {
+        continue;
+      }
+
+      // Skip elements intentionally hidden via the screen-reader-text / visually-hidden
+      // pattern (e.g. WordPress skip links): position:absolute with 1×1 px client area.
+      if (element.clientWidth <= 1 && element.clientHeight <= 1) {
         continue;
       }
 
