@@ -591,6 +591,7 @@ async function focusByTab(page: Page, key: string): Promise<FocusSnapshot | null
   for (let step = 0; step < MAX_TAB_STEPS; step += 1) {
     await page.keyboard.press('Tab');
     await page.waitForTimeout(TAB_DELAY_MS);
+    await scrollFocusedIntoView(page);
     const snapshot = await getFocusSnapshot(page);
 
     if (!snapshot.key) {
@@ -750,6 +751,7 @@ async function activateDisclosure(page: Page, trigger: DisclosureTrigger): Promi
 
   await page.keyboard.press('Tab');
   await page.waitForTimeout(TAB_DELAY_MS);
+  await scrollFocusedIntoView(page);
   return getFocusSnapshot(page);
 }
 
@@ -1359,6 +1361,7 @@ test.describe('check-03: keyboard navigation', () => {
           await page.waitForTimeout(TAB_DELAY_MS);
         }
 
+        await scrollFocusedIntoView(page);
         const wrappedSnapshot = await getFocusSnapshot(page);
         // Only assert that focus stayed inside the dialog — asserting the exact element
         // (focusableKeys[0]) is fragile because initial focus position and tab order
@@ -1415,6 +1418,7 @@ test.describe('check-03: keyboard navigation', () => {
           .toBe(false);
 
         if ((modalTarget as ModalTarget).triggerKey) {
+          await scrollFocusedIntoView(page);
           const snapshot = await getFocusSnapshot(page);
           expect(
             snapshot.key,
