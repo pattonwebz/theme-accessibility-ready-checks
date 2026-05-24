@@ -1167,13 +1167,19 @@ test.describe('check-03: keyboard navigation', () => {
         // Reset to clean state before reverse sweep: scroll to top and blur all elements
         await prepareForKeyboardTraversal(page);
 
-        // Start Shift+Tab from the reset state
-        for (let index = 0; index < reverseExpected.length; index += 1) {
+        // Shift+Tab sweep: iterate with extra headroom to skip null-key elements
+        // (e.g. skip links that are in the tab order but have no data-a11y-keyboard-id).
+        // Stop as soon as we have collected as many valid keys as expected.
+        for (let step = 0; step < MAX_TAB_STEPS && reverseSeen.length < reverseExpected.length; step += 1) {
           await page.keyboard.press('Shift+Tab');
           await page.waitForTimeout(TAB_DELAY_MS);
           await scrollFocusedIntoView(page);
           const snapshot = await getFocusSnapshot(page);
           if (snapshot.key) {
+            // Stop if we'd cycle back to a key we've already seen
+            if (reverseSeen.includes(snapshot.key)) {
+              break;
+            }
             reverseSeen.push(snapshot.key);
           }
         }
