@@ -10,8 +10,9 @@ import type { TemplateName } from '../../src/types/checks';
  *            for text-decoration, but desktop is the canonical rendering target)
  * WCAG: 1.4.1 Use of Color
  *
- * Links within body/content text must be underlined (or have another non-colour
- * distinguishing mark) so users who cannot rely on colour alone can identify links.
+ * Links within body/content text must be underlined so users who cannot rely
+ * on colour alone can identify links. The check enforces `text-decoration-line: underline`
+ * via computed styles; alternative non-colour indicators are not currently detected.
  */
 
 // ---------------------------------------------------------------------------
@@ -108,12 +109,15 @@ async function getContentLinkStyles(page: Page): Promise<LinkUnderlineResult> {
         continue;
       }
 
-      // Skip visually hidden links
-      const computed = window.getComputedStyle(link);
-      if (computed.display === 'none' || computed.visibility === 'hidden') {
+      // Skip visually hidden links — checkVisibility() checks the element AND all
+      // ancestors for display:none, visibility:hidden, opacity:0, content-visibility:hidden,
+      // zero-sized/clipped sr-only patterns, and the HTML `hidden` attribute.
+      if (!link.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) {
         skippedCount++;
         continue;
       }
+
+      const computed = window.getComputedStyle(link);
 
       checkedCount++;
 
