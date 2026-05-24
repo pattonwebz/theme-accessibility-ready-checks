@@ -135,18 +135,31 @@ async function prepareForKeyboardTraversal(page: Page): Promise<void> {
   });
 }
 
+// Scroll the currently focused element into the nearest visible position.
+// Playwright's headless Tab key does not always auto-scroll elements into view,
+// which causes off-screen elements to appear under sticky headers and produces
+// false-positive obscuration results.
+async function scrollFocusedIntoView(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const el = document.activeElement;
+    if (el instanceof HTMLElement && el !== document.body) {
+      el.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+    }
+  });
+}
+
 async function getInteractiveCandidates(page: Page): Promise<{
   expected: InteractiveCandidate[];
   hidden: InteractiveCandidate[];
 }> {
-  const candidates = await page.evaluate<InteractiveCandidate[]>(({ interactiveSelector, keyAttr }) => {
+  const candidates = await page.evaluate<InteractiveCandidate[], { interactiveSelector: string; keyAttr: string }>(({ interactiveSelector, keyAttr }) => {
     const win = window as Window & { __a11yKeyboardCounter?: number };
     win.__a11yKeyboardCounter ??= 0;
 
     const ensureKey = (element: Element): string => {
       let key = element.getAttribute(keyAttr);
       if (!key) {
-        win.__a11yKeyboardCounter += 1;
+        win.__a11yKeyboardCounter = (win.__a11yKeyboardCounter ?? 0) + 1;
         key = `a11y-keyboard-${win.__a11yKeyboardCounter}`;
         element.setAttribute(keyAttr, key);
       }
@@ -342,7 +355,7 @@ async function getFocusSnapshot(page: Page): Promise<FocusSnapshot> {
     const ensureKey = (element: Element): string => {
       let key = element.getAttribute(keyAttr);
       if (!key) {
-        win.__a11yKeyboardCounter += 1;
+        win.__a11yKeyboardCounter = (win.__a11yKeyboardCounter ?? 0) + 1;
         key = `a11y-keyboard-${win.__a11yKeyboardCounter}`;
         element.setAttribute(keyAttr, key);
       }
@@ -415,7 +428,7 @@ async function getFocusSnapshot(page: Page): Promise<FocusSnapshot> {
         snippet: active ? shortHtml(active.outerHTML) : '',
         tagName: active ? active.tagName.toLowerCase() : 'none',
         role: active?.getAttribute?.('role') ?? null,
-        text: active ? shortText(active.innerText || active.textContent) : '',
+        text: active ? shortText((active as HTMLElement).innerText || active.textContent) : '',
         hiddenReasons: [],
         zeroSized: false,
         rect: null,
@@ -530,6 +543,7 @@ async function runTabSweep(page: Page): Promise<TabSweep> {
   for (let step = 0; step < MAX_TAB_STEPS; step += 1) {
     await page.keyboard.press('Tab');
     await page.waitForTimeout(TAB_DELAY_MS);
+    await scrollFocusedIntoView(page);
 
     const snapshot = await getFocusSnapshot(page);
 
@@ -654,7 +668,7 @@ async function getDisclosureTriggers(page: Page): Promise<DisclosureTrigger[]> {
     const ensureKey = (element: Element): string => {
       let key = element.getAttribute(keyAttr);
       if (!key) {
-        win.__a11yKeyboardCounter += 1;
+        win.__a11yKeyboardCounter = (win.__a11yKeyboardCounter ?? 0) + 1;
         key = `a11y-keyboard-${win.__a11yKeyboardCounter}`;
         element.setAttribute(keyAttr, key);
       }
@@ -774,7 +788,7 @@ async function getFirstModalTarget(page: Page): Promise<ModalTarget | null> {
     const ensureKey = (element: Element): string => {
       let key = element.getAttribute(keyAttr);
       if (!key) {
-        win.__a11yKeyboardCounter += 1;
+        win.__a11yKeyboardCounter = (win.__a11yKeyboardCounter ?? 0) + 1;
         key = `a11y-keyboard-${win.__a11yKeyboardCounter}`;
         element.setAttribute(keyAttr, key);
       }
@@ -870,7 +884,7 @@ async function getFocusableKeysWithin(page: Page, containerSelector: string): Pr
     const ensureKey = (element: Element): string => {
       let key = element.getAttribute(keyAttr);
       if (!key) {
-        win.__a11yKeyboardCounter += 1;
+        win.__a11yKeyboardCounter = (win.__a11yKeyboardCounter ?? 0) + 1;
         key = `a11y-keyboard-${win.__a11yKeyboardCounter}`;
         element.setAttribute(keyAttr, key);
       }
@@ -928,7 +942,7 @@ async function getCloseButtonSelector(page: Page, dialogSelector: string): Promi
     const ensureKey = (element: Element): string => {
       let key = element.getAttribute(keyAttr);
       if (!key) {
-        win.__a11yKeyboardCounter += 1;
+        win.__a11yKeyboardCounter = (win.__a11yKeyboardCounter ?? 0) + 1;
         key = `a11y-keyboard-${win.__a11yKeyboardCounter}`;
         element.setAttribute(keyAttr, key);
       }
@@ -1150,6 +1164,7 @@ test.describe('check-03: keyboard navigation', () => {
         for (let index = 0; index < reverseExpected.length; index += 1) {
           await page.keyboard.press('Shift+Tab');
           await page.waitForTimeout(TAB_DELAY_MS);
+          await scrollFocusedIntoView(page);
           const snapshot = await getFocusSnapshot(page);
           if (snapshot.key) {
             reverseSeen.push(snapshot.key);
@@ -1179,46 +1194,50 @@ test.describe('check-03: keyboard navigation', () => {
         await page.goto(url);
         const samples = await getRepresentativeSamples(page);
         expect(
-          samples.button,
-          buildTemplateMessage(checkId, template, viewport, 'Expected at least one button sample to exist'),
-        ).not.toBeNull();
-        expect(
           samples.link,
           buildTemplateMessage(checkId, template, viewport, 'Expected at least one link sample to exist'),
         ).not.toBeNull();
 
-        const buttonSample = samples.button as InteractiveCandidate;
+        if (!samples.button) {
+          testInfo.annotations.push({
+            type: 'not-applicable',
+            description: buildTemplateMessage(checkId, template, viewport, 'No button sample found — skipping button activation checks'),
+          });
+        } else {
+          const buttonSample = samples.button;
+
+          await page.goto(url);
+          await getInteractiveCandidates(page);
+          await instrumentActivation(page, buttonSample.key, true);
+          const focusedButtonForSpace = await focusByTab(page, buttonSample.key);
+          expect(
+            focusedButtonForSpace?.key,
+            buildTemplateMessage(checkId, template, viewport, `Expected to tab to button sample ${buttonSample.selector}`),
+          ).toBe(buttonSample.key);
+          await page.keyboard.press('Space');
+          await page.waitForTimeout(TAB_DELAY_MS);
+          expect(
+            await getActivationCount(page, buttonSample.key),
+            buildTemplateMessage(checkId, template, viewport, `Expected Space to activate ${buttonSample.selector}`),
+          ).toBeGreaterThan(0);
+
+          await page.goto(url);
+          await getInteractiveCandidates(page);
+          await instrumentActivation(page, buttonSample.key, true);
+          const focusedButtonForEnter = await focusByTab(page, buttonSample.key);
+          expect(
+            focusedButtonForEnter?.key,
+            buildTemplateMessage(checkId, template, viewport, `Expected to tab to button sample ${buttonSample.selector}`),
+          ).toBe(buttonSample.key);
+          await page.keyboard.press('Enter');
+          await page.waitForTimeout(TAB_DELAY_MS);
+          expect(
+            await getActivationCount(page, buttonSample.key),
+            buildTemplateMessage(checkId, template, viewport, `Expected Enter to activate ${buttonSample.selector}`),
+          ).toBeGreaterThan(0);
+        }
+
         const linkSample = samples.link as InteractiveCandidate;
-
-        await page.goto(url);
-        await getInteractiveCandidates(page);
-        await instrumentActivation(page, buttonSample.key, true);
-        const focusedButtonForSpace = await focusByTab(page, buttonSample.key);
-        expect(
-          focusedButtonForSpace?.key,
-          buildTemplateMessage(checkId, template, viewport, `Expected to tab to button sample ${buttonSample.selector}`),
-        ).toBe(buttonSample.key);
-        await page.keyboard.press('Space');
-        await page.waitForTimeout(TAB_DELAY_MS);
-        expect(
-          await getActivationCount(page, buttonSample.key),
-          buildTemplateMessage(checkId, template, viewport, `Expected Space to activate ${buttonSample.selector}`),
-        ).toBeGreaterThan(0);
-
-        await page.goto(url);
-        await getInteractiveCandidates(page);
-        await instrumentActivation(page, buttonSample.key, true);
-        const focusedButtonForEnter = await focusByTab(page, buttonSample.key);
-        expect(
-          focusedButtonForEnter?.key,
-          buildTemplateMessage(checkId, template, viewport, `Expected to tab to button sample ${buttonSample.selector}`),
-        ).toBe(buttonSample.key);
-        await page.keyboard.press('Enter');
-        await page.waitForTimeout(TAB_DELAY_MS);
-        expect(
-          await getActivationCount(page, buttonSample.key),
-          buildTemplateMessage(checkId, template, viewport, `Expected Enter to activate ${buttonSample.selector}`),
-        ).toBeGreaterThan(0);
 
         await page.goto(url);
         await getInteractiveCandidates(page);

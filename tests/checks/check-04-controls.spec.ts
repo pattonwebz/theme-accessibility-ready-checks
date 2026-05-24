@@ -88,7 +88,7 @@ async function collectInteractiveControls(page: Page): Promise<ControlAudit[]> {
           segment += usableClasses.map((className) => `.${CSS.escape(className)}`).join('');
         }
 
-        const parent = current.parentElement;
+        const parent: Element | null = current.parentElement;
         if (parent) {
           const siblings = [...parent.children].filter((child) => child.localName === current?.localName);
           if (siblings.length > 1) {
@@ -271,7 +271,7 @@ async function collectSemanticsFindings(page: Page): Promise<SemanticsFinding[]>
           segment += usableClasses.map((className) => `.${CSS.escape(className)}`).join('');
         }
 
-        const parent = current.parentElement;
+        const parent: Element | null = current.parentElement;
         if (parent) {
           const siblings = [...parent.children].filter((child) => child.localName === current?.localName);
           if (siblings.length > 1) {
@@ -364,7 +364,7 @@ async function collectRoleButtonCandidates(page: Page): Promise<Array<{ selector
           segment += usableClasses.map((className) => `.${CSS.escape(className)}`).join('');
         }
 
-        const parent = current.parentElement;
+        const parent: Element | null = current.parentElement;
         if (parent) {
           const siblings = [...parent.children].filter((child) => child.localName === current?.localName);
           if (siblings.length > 1) {
@@ -415,7 +415,7 @@ async function collectStatefulCandidates(page: Page): Promise<StatefulCandidate[
           segment += usableClasses.map((className) => `.${CSS.escape(className)}`).join('');
         }
 
-        const parent = current.parentElement;
+        const parent: Element | null = current.parentElement;
         if (parent) {
           const siblings = [...parent.children].filter((child) => child.localName === current?.localName);
           if (siblings.length > 1) {
@@ -587,7 +587,7 @@ async function collectDisabledButtons(page: Page): Promise<Array<{ selector: str
           segment += usableClasses.map((className) => `.${CSS.escape(className)}`).join('');
         }
 
-        const parent = current.parentElement;
+        const parent: Element | null = current.parentElement;
         if (parent) {
           const siblings = [...parent.children].filter((child) => child.localName === current?.localName);
           if (siblings.length > 1) {
@@ -635,7 +635,7 @@ async function auditTabs(page: Page): Promise<TabAuditResult> {
           segment += usableClasses.map((className) => `.${CSS.escape(className)}`).join('');
         }
 
-        const parent = current.parentElement;
+        const parent: Element | null = current.parentElement;
         if (parent) {
           const siblings = [...parent.children].filter((child) => child.localName === current?.localName);
           if (siblings.length > 1) {

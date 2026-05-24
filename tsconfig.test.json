@@ -1,9 +1,16 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
     "noEmit": true,
-    "types": ["node", "@playwright/test"]
+    "baseUrl": ".",
+    "paths": {
+      "@playwright/test": ["./node_modules/@playwright/test"],
+      "axe-core": ["./node_modules/axe-core"]
+    }
   },
-  "include": ["src/**/*", "tests/**/*", "playwright.config.ts", "a11y.config.ts"]
+  "include": [
+    "./src/**/*",
+    "./tests/**/*",
+    "./playwright.config.ts"
+  ]
 }

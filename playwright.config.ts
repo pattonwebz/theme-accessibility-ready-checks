@@ -11,7 +11,7 @@ export default defineConfig({
   globalSetup: './tests/global-setup.ts',
   timeout: 60_000,
   retries: process.env.CI ? 1 : 0,
-  workers: 1, // Serial — WP state must be consistent between tests
+  workers: process.env.A11Y_WORKERS ? parseInt(process.env.A11Y_WORKERS) : 1, // Default serial — WP state must be consistent between tests. Override with A11Y_WORKERS=N.
   outputDir: `${outputDir}/playwright-artifacts`,
   reporter: [
     ['list'],

@@ -14,33 +14,22 @@ echo ""
 MENU_NAME="Accessibility Test Menu"
 echo "==> Re-assigning navigation menu to current theme locations..."
 
-# Create the menu if it was never seeded (e.g. initial theme was a block theme with no nav locations)
-if ! $WP menu list --fields=name --format=csv 2>/dev/null | tail -n +2 | tr -d '"' | grep -Fxq "$MENU_NAME"; then
-  echo "    Menu '$MENU_NAME' not found - creating it now..."
-  $WP menu create "$MENU_NAME" >/dev/null
-  # Populate with whatever published pages exist
-  $WP post list --post_type=page --post_status=publish --fields=ID,post_title --format=csv 2>/dev/null | \
-    tail -n +2 | while IFS=',' read -r pid ptitle; do
-      [ -z "$pid" ] && continue
-      $WP menu item add-post "$MENU_NAME" "$pid" --title="$ptitle" 2>/dev/null || true
-    done
-  echo "    Created menu '$MENU_NAME' with available pages"
+# Check if menu exists
+if ! $WP nav menu list --fields=name --format=csv 2>/dev/null | tail -n +2 | grep -Fxq "$MENU_NAME"; then
+  echo "    WARNING: Menu '$MENU_NAME' does not exist - skipping nav menu assignment"
 else
-  echo "    Menu '$MENU_NAME' already exists"
-fi
-
-# Assign menu to all nav locations registered by the current theme
-# Note: wp menu location list does not support --fields; parse column 1 of CSV output
-LOCATIONS=$($WP menu location list --format=csv 2>/dev/null | tail -n +2 | cut -d',' -f1 || true)
-
-if [ -z "$LOCATIONS" ]; then
-  echo "    No nav menu locations registered by theme - skipping location assignment"
-else
-  while IFS= read -r location; do
-    [ -z "$location" ] && continue
-    $WP menu location assign "$MENU_NAME" "$location" 2>/dev/null || true
-    echo "    Assigned menu '$MENU_NAME' to location: $location"
-  done <<< "$LOCATIONS"
+  # Get all current theme nav menu locations
+  LOCATIONS=$($WP nav menu location list --fields=location --format=csv 2>/dev/null | tail -n +2 || true)
+  
+  if [ -z "$LOCATIONS" ]; then
+    echo "    No nav menu locations registered by theme - skipping menu assignment"
+  else
+    while IFS= read -r location; do
+      [ -z "$location" ] && continue
+      $WP nav menu location assign "$MENU_NAME" "$location" 2>/dev/null || true
+      echo "    Assigned menu '$MENU_NAME' to location: $location"
+    done <<< "$LOCATIONS"
+  fi
 fi
 
 echo ""
@@ -59,8 +48,8 @@ else
   # 3. Populate empty sidebars with widgets (classic themes only)
   # ============================================================================
   
-  # Note: wp sidebar list has no 'status' field - list all sidebars by ID, skipping wp_inactive_widgets
-  SIDEBARS=$($WP sidebar list --format=csv 2>/dev/null | tail -n +2 | cut -d',' -f2 | tr -d '"' || true)
+  SIDEBARS=$($WP sidebar list --fields=id,status --format=csv 2>/dev/null | \
+    awk -F',' 'NR>1 && $2=="active" {print $1}' || true)
   
   if [ -z "$SIDEBARS" ]; then
     echo "No active sidebars found"
