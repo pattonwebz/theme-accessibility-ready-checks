@@ -1434,4 +1434,35 @@ test.describe('check-03: keyboard navigation', () => {
       });
     }
   });
+
+  test.describe('keyboard-12 — focus indicators meet minimum 2px outline width', () => {
+    for (const template of ALL_TEMPLATES) {
+      test(template, async ({ page, templateUrl }, testInfo) => {
+        const viewport = testInfo.project.name;
+        const checkId = getCheckId(viewport, 12);
+        await page.goto(templateUrl(template));
+
+        const sweep = await runTabSweep(page);
+
+        // Only check elements that use an outline (not box-shadow-only indicators,
+        // which cannot have their spread reliably measured via computed styles).
+        const thinOutlines = sweep.uniqueSteps.filter((step) => {
+          if (!step.key || !step.indicator) return false;
+          const { outlineWidth, outlineStyle, outlineColor } = step.indicator;
+          const hasOutline = outlineWidth > 0 && outlineStyle !== 'none' && outlineColor !== 'transparent';
+          return hasOutline && outlineWidth < 2;
+        });
+
+        expect(
+          thinOutlines,
+          buildTemplateMessage(
+            checkId,
+            template,
+            viewport,
+            `Expected each focus outline to be at least 2px. Elements with insufficient outline: ${thinOutlines.map((step) => `${step.selector} (${step.indicator?.outlineWidth}px)`).join(' | ')}`,
+          ),
+        ).toHaveLength(0);
+      });
+    }
+  });
 });
