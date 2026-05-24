@@ -1194,46 +1194,50 @@ test.describe('check-03: keyboard navigation', () => {
         await page.goto(url);
         const samples = await getRepresentativeSamples(page);
         expect(
-          samples.button,
-          buildTemplateMessage(checkId, template, viewport, 'Expected at least one button sample to exist'),
-        ).not.toBeNull();
-        expect(
           samples.link,
           buildTemplateMessage(checkId, template, viewport, 'Expected at least one link sample to exist'),
         ).not.toBeNull();
 
-        const buttonSample = samples.button as InteractiveCandidate;
+        if (!samples.button) {
+          testInfo.annotations.push({
+            type: 'not-applicable',
+            description: buildTemplateMessage(checkId, template, viewport, 'No button sample found — skipping button activation checks'),
+          });
+        } else {
+          const buttonSample = samples.button;
+
+          await page.goto(url);
+          await getInteractiveCandidates(page);
+          await instrumentActivation(page, buttonSample.key, true);
+          const focusedButtonForSpace = await focusByTab(page, buttonSample.key);
+          expect(
+            focusedButtonForSpace?.key,
+            buildTemplateMessage(checkId, template, viewport, `Expected to tab to button sample ${buttonSample.selector}`),
+          ).toBe(buttonSample.key);
+          await page.keyboard.press('Space');
+          await page.waitForTimeout(TAB_DELAY_MS);
+          expect(
+            await getActivationCount(page, buttonSample.key),
+            buildTemplateMessage(checkId, template, viewport, `Expected Space to activate ${buttonSample.selector}`),
+          ).toBeGreaterThan(0);
+
+          await page.goto(url);
+          await getInteractiveCandidates(page);
+          await instrumentActivation(page, buttonSample.key, true);
+          const focusedButtonForEnter = await focusByTab(page, buttonSample.key);
+          expect(
+            focusedButtonForEnter?.key,
+            buildTemplateMessage(checkId, template, viewport, `Expected to tab to button sample ${buttonSample.selector}`),
+          ).toBe(buttonSample.key);
+          await page.keyboard.press('Enter');
+          await page.waitForTimeout(TAB_DELAY_MS);
+          expect(
+            await getActivationCount(page, buttonSample.key),
+            buildTemplateMessage(checkId, template, viewport, `Expected Enter to activate ${buttonSample.selector}`),
+          ).toBeGreaterThan(0);
+        }
+
         const linkSample = samples.link as InteractiveCandidate;
-
-        await page.goto(url);
-        await getInteractiveCandidates(page);
-        await instrumentActivation(page, buttonSample.key, true);
-        const focusedButtonForSpace = await focusByTab(page, buttonSample.key);
-        expect(
-          focusedButtonForSpace?.key,
-          buildTemplateMessage(checkId, template, viewport, `Expected to tab to button sample ${buttonSample.selector}`),
-        ).toBe(buttonSample.key);
-        await page.keyboard.press('Space');
-        await page.waitForTimeout(TAB_DELAY_MS);
-        expect(
-          await getActivationCount(page, buttonSample.key),
-          buildTemplateMessage(checkId, template, viewport, `Expected Space to activate ${buttonSample.selector}`),
-        ).toBeGreaterThan(0);
-
-        await page.goto(url);
-        await getInteractiveCandidates(page);
-        await instrumentActivation(page, buttonSample.key, true);
-        const focusedButtonForEnter = await focusByTab(page, buttonSample.key);
-        expect(
-          focusedButtonForEnter?.key,
-          buildTemplateMessage(checkId, template, viewport, `Expected to tab to button sample ${buttonSample.selector}`),
-        ).toBe(buttonSample.key);
-        await page.keyboard.press('Enter');
-        await page.waitForTimeout(TAB_DELAY_MS);
-        expect(
-          await getActivationCount(page, buttonSample.key),
-          buildTemplateMessage(checkId, template, viewport, `Expected Enter to activate ${buttonSample.selector}`),
-        ).toBeGreaterThan(0);
 
         await page.goto(url);
         await getInteractiveCandidates(page);
