@@ -6,6 +6,8 @@ Automated accessibility testing suite for WordPress themes to verify compliance 
 
 > **⚠️ Important:** The tests in this repository are best-effort checks only. They are **not a replacement for a human reviewer**. Accessibility review requires human judgement — these tests exist solely to speed up the subset of checks that are automatable and to surface obvious failures early. A passing test suite does not guarantee a theme meets the accessibility-ready standard.
 
+> **📊 Scale:** The suite runs **1,000+ individual tests** across multiple page templates, viewports, and interaction states — each test contains multiple assertions, so the total number of data points collected per theme run is substantially higher. Test quality varies: the majority are well-refined and reliable, but a small number of checks are still early-stage and may produce occasional false positives or false negatives. Where a check is known to be less stable, treat its results as a signal worth investigating rather than a definitive verdict.
+
 ## Overview
 
 This project provides Playwright-based automated tests that validate whether WordPress themes meet the accessibility standards required for the "accessibility-ready" tag in the WordPress theme directory.
