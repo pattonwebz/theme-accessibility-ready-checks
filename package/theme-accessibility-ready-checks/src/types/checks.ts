@@ -16,9 +16,9 @@ export const CHECK_IDS = [
   'context-change-1', 'context-change-2',
   'hover-focus-1', 'hover-focus-2',
   'screen-reader-text-1',
-  'audio-video-1',     // manual
-  'a11y-statement-1',  // manual
-  'plugin-review-1',   // manual
+  'audio-video-1',
+  'a11y-statement-1',
+  'plugin-review-1',
 ] as const;
 
 export type CheckId = typeof CHECK_IDS[number];
@@ -38,14 +38,14 @@ export type TemplateName =
 export type Viewport = 'desktop' | 'mobile';
 
 export const TEMPLATE_PATHS: Record<TemplateName, string> = {
-  'front-page':          '/',
-  'blog':                '/blog/',
-  'post-with-comments':  '/template-comments/',
-  'category-archive':    '/category/block/',
-  'page-markup':         '/accessibility-ready-test-pages/page-markup-and-formatting/',
-  'block-patterns':      '/accessibility-ready-test-pages/block-patterns/',
-  'search-results':      '/?s=block',
-  '404':                 '/this-page-does-not-exist-404/',
+  'front-page': '/',
+  'blog': '/blog/',
+  'post-with-comments': '/template-comments/',
+  'category-archive': '/category/block/',
+  'page-markup': '/accessibility-ready-test-pages/page-markup-and-formatting/',
+  'block-patterns': '/accessibility-ready-test-pages/block-patterns/',
+  'search-results': '/?s=block',
+  '404': '/this-page-does-not-exist-404/',
 };
 
 export interface ViolationDetail {
@@ -67,7 +67,7 @@ export interface CheckResult {
   viewport: Viewport;
   status: CheckStatus;
   detail?: string | ViolationDetail[];
-  reason?: string;          // populated when status = 'not-applicable'
+  reason?: string;
   media?: MediaReference[];
   durationMs?: number;
 }
