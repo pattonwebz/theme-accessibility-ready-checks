@@ -135,6 +135,15 @@ async function prepareForKeyboardTraversal(page: Page): Promise<void> {
   });
 }
 
+async function scrollFocusedIntoView(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement) {
+      active.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    }
+  });
+}
+
 async function getInteractiveCandidates(page: Page): Promise<{
   expected: InteractiveCandidate[];
   hidden: InteractiveCandidate[];
@@ -530,6 +539,7 @@ async function runTabSweep(page: Page): Promise<TabSweep> {
   for (let step = 0; step < MAX_TAB_STEPS; step += 1) {
     await page.keyboard.press('Tab');
     await page.waitForTimeout(TAB_DELAY_MS);
+    await scrollFocusedIntoView(page);
 
     const snapshot = await getFocusSnapshot(page);
 
@@ -1150,6 +1160,7 @@ test.describe('check-03: keyboard navigation', () => {
         for (let index = 0; index < reverseExpected.length; index += 1) {
           await page.keyboard.press('Shift+Tab');
           await page.waitForTimeout(TAB_DELAY_MS);
+          await scrollFocusedIntoView(page);
           const snapshot = await getFocusSnapshot(page);
           if (snapshot.key) {
             reverseSeen.push(snapshot.key);
