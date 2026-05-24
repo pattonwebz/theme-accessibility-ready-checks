@@ -50,7 +50,7 @@ test.describe('check-16: screen reader text', () => {
       const snapshot = await page.evaluate<ScreenReaderTextSnapshot>(() => {
         const stylesheetErrors: string[] = [];
 
-        const ruleContainsScreenReaderText = (selectorText: string): boolean => selectorText.includes('.screen-reader-text');
+        const ruleContainsScreenReaderText = (selectorText: string): boolean => /(?:^|[\s,>+~])\.screen-reader-text(?:[^a-zA-Z0-9_-]|$)/.test(selectorText);
 
         const countMatchingRules = (rules: CSSRuleList): number => {
           let matches = 0;
@@ -134,55 +134,55 @@ test.describe('check-16: screen reader text', () => {
         || isNegativeOffscreen(styles.top);
       const isVisuallyHidden = hasMinimalBox && hasSecondaryHidingTechnique;
 
-      if (!hasDomElement && !hasStylesheetDefinition) {
+      if (!hasDomElement) {
         violations.push({
           selector: '.screen-reader-text',
-          message: 'No .screen-reader-text element was found in the DOM and no matching stylesheet rule was detected.',
+          message: 'No .screen-reader-text element was found on the page.',
           wcag: '1.3.1',
         });
-      }
+      } else {
+        if (!hasStylesheetDefinition) {
+          violations.push({
+            selector: '.screen-reader-text',
+            message: 'The .screen-reader-text class was not found in any accessible stylesheet on the page.',
+            wcag: '1.3.1',
+          });
+        }
 
-      if (!hasStylesheetDefinition) {
-        violations.push({
-          selector: '.screen-reader-text',
-          message: 'The .screen-reader-text class was not found in any accessible stylesheet on the page.',
-          wcag: '1.3.1',
-        });
-      }
+        if (styles.display === 'none') {
+          violations.push({
+            selector: '.screen-reader-text',
+            snippet: snapshot.textSnippet,
+            message: '.screen-reader-text uses display:none, which hides content from screen readers.',
+            wcag: '1.3.1',
+          });
+        }
 
-      if (styles.display === 'none') {
-        violations.push({
-          selector: '.screen-reader-text',
-          snippet: snapshot.textSnippet,
-          message: '.screen-reader-text uses display:none, which hides content from screen readers.',
-          wcag: '1.3.1',
-        });
-      }
+        if (styles.visibility === 'hidden') {
+          violations.push({
+            selector: '.screen-reader-text',
+            snippet: snapshot.textSnippet,
+            message: '.screen-reader-text uses visibility:hidden, which hides content from screen readers.',
+            wcag: '1.3.1',
+          });
+        }
 
-      if (styles.visibility === 'hidden') {
-        violations.push({
-          selector: '.screen-reader-text',
-          snippet: snapshot.textSnippet,
-          message: '.screen-reader-text uses visibility:hidden, which hides content from screen readers.',
-          wcag: '1.3.1',
-        });
-      }
+        if (!isVisuallyHidden) {
+          violations.push({
+            selector: '.screen-reader-text',
+            snippet: snapshot.textSnippet,
+            message: `Computed styles did not match a supported visually-hidden pattern. Received position=${styles.position}, width=${styles.width}, height=${styles.height}, overflowX=${styles.overflowX}, overflowY=${styles.overflowY}, clip=${styles.clip}, clipPath=${styles.clipPath}, whiteSpace=${styles.whiteSpace}, left=${styles.left}, top=${styles.top}.`,
+            wcag: '1.3.1',
+          });
+        }
 
-      if (!isVisuallyHidden) {
-        violations.push({
-          selector: '.screen-reader-text',
-          snippet: snapshot.textSnippet,
-          message: `Computed styles did not match a supported visually-hidden pattern. Received position=${styles.position}, width=${styles.width}, height=${styles.height}, overflowX=${styles.overflowX}, overflowY=${styles.overflowY}, clip=${styles.clip}, clipPath=${styles.clipPath}, whiteSpace=${styles.whiteSpace}, left=${styles.left}, top=${styles.top}.`,
-          wcag: '1.3.1',
-        });
-      }
-
-      if (snapshot.stylesheetErrors.length > 0 && !hasStylesheetDefinition) {
-        violations.push({
-          selector: '.screen-reader-text',
-          message: `Unable to inspect one or more stylesheets while looking for .screen-reader-text: ${snapshot.stylesheetErrors.join('; ')}`,
-          wcag: '1.3.1',
-        });
+        if (snapshot.stylesheetErrors.length > 0 && !hasStylesheetDefinition) {
+          violations.push({
+            selector: '.screen-reader-text',
+            message: `Unable to inspect one or more stylesheets while looking for .screen-reader-text: ${snapshot.stylesheetErrors.join('; ')}`,
+            wcag: '1.3.1',
+          });
+        }
       }
 
       const result: CheckResult = {
